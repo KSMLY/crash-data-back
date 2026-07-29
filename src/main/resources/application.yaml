@@ -1,3 +1,7 @@
 spring:
   application:
-    name: demo
+    name: dash-back
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=crashdb;trustServerCertificate=true
+    username: sa
+    password: ${MSSQL_SA_PASSWORD}
