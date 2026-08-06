@@ -5,3 +5,7 @@ spring:
     url: jdbc:sqlserver://localhost:1433;databaseName=crashdb;trustServerCertificate=true
     username: sa
     password: ${MSSQL_SA_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
