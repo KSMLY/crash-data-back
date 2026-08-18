@@ -7,7 +7,6 @@ import com.crashdata.back.entity.District;
 import com.crashdata.back.entity.Governorate;
 import com.crashdata.back.entity.Municipality;
 import com.crashdata.back.service.LocationService;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,7 +22,6 @@ public class LocationController {
         this.locationService = locationService;
     }
 
-    @Cacheable("governorates")
     @GetMapping("/governorates")
     public List<GovernorateDto> getGovernorates() {
         return locationService.getGovernorates().stream()
@@ -31,7 +29,6 @@ public class LocationController {
                 .toList();
     }
 
-    @Cacheable("districts")
     @GetMapping("/districts")
     public List<DistrictDto> getDistricts(@RequestParam(required = false) Long governorateId) {
         return locationService.getDistricts(governorateId).stream()
@@ -39,7 +36,6 @@ public class LocationController {
                 .toList();
     }
 
-    @Cacheable("municipalities")
     @GetMapping("/municipalities")
     public List<MunicipalityDto> getMunicipalities(@RequestParam(required = false) Long districtId) {
         return locationService.getMunicipalities(districtId).stream()

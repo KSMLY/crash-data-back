@@ -13,3 +13,8 @@ spring:
       hibernate:
         type:
           prefer_nationalized_types: true
+
+app:
+  cache:
+    expire-after-write: 1h
+    maximum-size: 2000
