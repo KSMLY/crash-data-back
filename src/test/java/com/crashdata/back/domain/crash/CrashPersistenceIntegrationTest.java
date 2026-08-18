@@ -2,13 +2,12 @@ package com.crashdata.back.domain.crash;
 
 import com.crashdata.back.domain.code.*;
 import com.crashdata.back.domain.location.District;
-import com.crashdata.back.domain.location.DistrictRepository;
+import com.crashdata.back.domain.location.DistrictDao;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -18,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Transactional
 class CrashPersistenceIntegrationTest {
 
-    @Autowired private DistrictRepository districtRepository;
+    @Autowired private DistrictDao districtDao;
     @Autowired private CrashRepository crashRepository;
     @Autowired private VehicleRepository vehicleRepository;
     @Autowired private PersonRepository personRepository;
@@ -26,11 +25,11 @@ class CrashPersistenceIntegrationTest {
     @Test
     void savesCrashWithVehicleAndPersonAndReadsItBack() {
 
-        District district = districtRepository.findAll().getFirst();
+        District district = districtDao.findAll().getFirst();
 
         Crash crash = new Crash(
                 "REF-001", (short) 2026, LocalDate.of(2026, 1, 1),
-                LocalTime.of(14, 30), district, null, null,
+                LocalTime.of(14, 30), district.getId(), null, null,
                 null, CrashType.ANIMAL, ImpactType.HEAD_ON, Weather.CLEAR,
                 Light.DARK_STREET_LIGHTS_UNLIT, CrashSeverity.FATAL, RoadwayType.MOTORWAY,
                 null, (short) 50, ObstaclePresent.NO, SurfaceCondition.DRY,
@@ -53,7 +52,7 @@ class CrashPersistenceIntegrationTest {
         Vehicle foundVehicle = vehicleRepository.findById(vehicle.getId()).orElseThrow();
         Person foundPerson = personRepository.findById(person.getId()).orElseThrow();
 
-        assertThat(foundCrash.getDistrict().getId()).isEqualTo(district.getId());
+        assertThat(foundCrash.getDistrictId()).isEqualTo(district.getId());
         assertThat(foundVehicle.getCrash().getId()).isEqualTo(crash.getId());
         assertThat(foundPerson.getCrash().getId()).isEqualTo(crash.getId());
         assertThat(foundPerson.getOccupantVehicle().getId()).isEqualTo(vehicle.getId());
