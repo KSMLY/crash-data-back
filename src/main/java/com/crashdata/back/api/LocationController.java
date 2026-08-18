@@ -1,11 +1,9 @@
 package com.crashdata.back.api;
 
-import com.crashdata.back.domain.location.District;
-import com.crashdata.back.domain.location.DistrictRepository;
+import com.crashdata.back.domain.location.LocationService;
 import com.crashdata.back.domain.location.Governorate;
-import com.crashdata.back.domain.location.GovernorateRepository;
+import com.crashdata.back.domain.location.District;
 import com.crashdata.back.domain.location.Municipality;
-import com.crashdata.back.domain.location.MunicipalityRepository;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,22 +14,16 @@ import java.util.List;
 @RestController
 public class LocationController {
 
-    private final GovernorateRepository governorateRepository;
-    private final DistrictRepository districtRepository;
-    private final MunicipalityRepository municipalityRepository;
+    private final LocationService locationService;
 
-    public LocationController(GovernorateRepository governorateRepository,
-                               DistrictRepository districtRepository,
-                               MunicipalityRepository municipalityRepository) {
-        this.governorateRepository = governorateRepository;
-        this.districtRepository = districtRepository;
-        this.municipalityRepository = municipalityRepository;
+    public LocationController(LocationService locationService) {
+        this.locationService = locationService;
     }
 
     @Cacheable("governorates")
     @GetMapping("/governorates")
     public List<GovernorateDto> getGovernorates() {
-        return governorateRepository.findAll().stream()
+        return locationService.getGovernorates().stream()
                 .map(LocationController::toDto)
                 .toList();
     }
@@ -39,10 +31,7 @@ public class LocationController {
     @Cacheable("districts")
     @GetMapping("/districts")
     public List<DistrictDto> getDistricts(@RequestParam(required = false) Long governorateId) {
-        List<District> districts = governorateId == null
-                ? districtRepository.findAll()
-                : districtRepository.findByGovernorateId(governorateId);
-        return districts.stream()
+        return locationService.getDistricts(governorateId).stream()
                 .map(LocationController::toDto)
                 .toList();
     }
@@ -50,10 +39,7 @@ public class LocationController {
     @Cacheable("municipalities")
     @GetMapping("/municipalities")
     public List<MunicipalityDto> getMunicipalities(@RequestParam(required = false) Long districtId) {
-        List<Municipality> municipalities = districtId == null
-                ? municipalityRepository.findAll()
-                : municipalityRepository.findByDistrictId(districtId);
-        return municipalities.stream()
+        return locationService.getMunicipalities(districtId).stream()
                 .map(LocationController::toDto)
                 .toList();
     }
@@ -63,10 +49,10 @@ public class LocationController {
     }
 
     private static DistrictDto toDto(District district) {
-        return new DistrictDto(district.getId(), district.getGovernorate().getId(), district.getNameEn(), district.getNameAr());
+        return new DistrictDto(district.getId(), district.getGovernorateId(), district.getNameEn(), district.getNameAr());
     }
 
     private static MunicipalityDto toDto(Municipality municipality) {
-        return new MunicipalityDto(municipality.getId(), municipality.getDistrict().getId(), municipality.getNameEn(), municipality.getNameAr());
+        return new MunicipalityDto(municipality.getId(), municipality.getDistrictId(), municipality.getNameEn(), municipality.getNameAr());
     }
 }

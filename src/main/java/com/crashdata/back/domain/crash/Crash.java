@@ -1,8 +1,6 @@
 package com.crashdata.back.domain.crash;
 
 import com.crashdata.back.domain.code.*;
-import com.crashdata.back.domain.location.District;
-import com.crashdata.back.domain.location.Municipality;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -32,13 +30,11 @@ public class Crash {
     @Column(name = "crash_time")
     private LocalTime crashTime;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "district_id", nullable = false)
-    private District district;
+    @Column(name = "district_id", nullable = false)
+    private Long districtId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "municipality_id")
-    private Municipality municipality;
+    @Column(name = "municipality_id")
+    private Long municipalityId;
 
     @Column(name = "latitude", precision = 9, scale = 6)
     private BigDecimal latitude;
@@ -94,7 +90,7 @@ public class Crash {
     protected Crash() { }
 
     public Crash(String policeRef, Short refYear, LocalDate crashDate, LocalTime crashTime,
-                 District district, Municipality municipality, BigDecimal latitude, BigDecimal longitude,
+                 Long districtId, Long municipalityId, BigDecimal latitude, BigDecimal longitude,
                  CrashType crashType, ImpactType impactType, Weather weather, Light light, CrashSeverity severity,
                  RoadwayType roadwayType, FunctionalClass functionalClass, Short speedLimitKmh,
                  ObstaclePresent obstaclePresent, SurfaceCondition surfaceCondition, JunctionType junctionType,
@@ -103,8 +99,8 @@ public class Crash {
         this.refYear = refYear;
         this.crashDate = crashDate;
         this.crashTime = crashTime;
-        this.district = district;
-        this.municipality = municipality;
+        this.districtId = districtId;
+        this.municipalityId = municipalityId;
         this.latitude = latitude;
         this.longitude = longitude;
         this.crashType = crashType;
@@ -131,8 +127,8 @@ public class Crash {
     public Short getRefYear()                       { return refYear; }
     public LocalDate getCrashDate()                 { return crashDate; }
     public LocalTime getCrashTime()                 { return crashTime; }
-    public District getDistrict()                   { return district; }
-    public Municipality getMunicipality()           { return municipality; }
+    public Long getDistrictId()                   { return districtId; }
+    public Long getMunicipalityId()           { return municipalityId; }
     public BigDecimal getLatitude()                 { return latitude; }
     public BigDecimal getLongitude()                { return longitude; }
     public CrashType getCrashType()                 { return crashType; }
