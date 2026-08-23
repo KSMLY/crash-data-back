@@ -11,5 +11,4 @@ public class Governorate {
     private String nameEn;
     private String nameAr;
 
-
 }
