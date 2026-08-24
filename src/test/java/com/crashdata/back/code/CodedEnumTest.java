@@ -1,6 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.AttributeConverter;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -59,16 +58,9 @@ class CodedEnumTest {
 
     @ParameterizedTest
     @MethodSource("enums")
-    @SuppressWarnings("unchecked")
-    void everyConstantRoundTripsThroughItsConverter(Class<? extends CodedEnum> type) throws Exception {
-        Class<?> convClass = Class.forName(type.getName() + "$Conv");
-        AttributeConverter<Object, Short> conv =
-                (AttributeConverter<Object, Short>) convClass.getDeclaredConstructor().newInstance();
-
-        for (CodedEnum constant : type.getEnumConstants()) {
-            Short code = conv.convertToDatabaseColumn(constant);
-            assertEquals(constant.getCode(), code);
-            assertEquals(constant, conv.convertToEntityAttribute(code));
+    <E extends Enum<E> & CodedEnum> void everyConstantRoundTripsThroughFromCode(Class<E> type) {
+        for (E constant : type.getEnumConstants()) {
+            assertEquals(constant, CodedEnum.fromCode(type, constant.getCode()));
         }
     }
 }

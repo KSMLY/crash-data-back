@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum CrashType implements CodedEnum {
 
     PEDESTRIAN(1),
@@ -22,12 +20,5 @@ public enum CrashType implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<CrashType> {
-        public Conv() {
-            super(CrashType.class);
-        }
     }
 }

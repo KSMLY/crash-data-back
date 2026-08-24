@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum SurfaceCondition implements CodedEnum {
 
     DRY(1),
@@ -22,12 +20,5 @@ public enum SurfaceCondition implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<SurfaceCondition> {
-        public Conv() {
-            super(SurfaceCondition.class);
-        }
     }
 }

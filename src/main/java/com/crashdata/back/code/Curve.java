@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum Curve implements CodedEnum {
 
     TIGHT(1),
@@ -18,12 +16,5 @@ public enum Curve implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<Curve> {
-        public Conv() {
-            super(Curve.class);
-        }
     }
 }

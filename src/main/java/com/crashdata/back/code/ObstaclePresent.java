@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum ObstaclePresent implements CodedEnum {
 
     YES(1),
@@ -17,12 +15,5 @@ public enum ObstaclePresent implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<ObstaclePresent> {
-        public Conv() {
-            super(ObstaclePresent.class);
-        }
     }
 }

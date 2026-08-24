@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum Restraint implements CodedEnum {
 
     SEATBELT_AVAILABLE_USED(1),
@@ -25,12 +23,5 @@ public enum Restraint implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<Restraint> {
-        public Conv() {
-            super(Restraint.class);
-        }
     }
 }

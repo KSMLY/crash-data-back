@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum TestType implements CodedEnum {
 
     BLOOD(1),
@@ -19,12 +17,5 @@ public enum TestType implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<TestType> {
-        public Conv() {
-            super(TestType.class);
-        }
     }
 }

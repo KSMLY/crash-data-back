@@ -1,6 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
 
 public enum CrashSeverity implements CodedEnum {
 
@@ -17,12 +16,5 @@ public enum CrashSeverity implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<CrashSeverity> {
-        public Conv() {
-            super(CrashSeverity.class);
-        }
     }
 }

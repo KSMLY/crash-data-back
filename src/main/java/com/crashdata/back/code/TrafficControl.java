@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 // No unknown value in this list, unlike most of the code lists.
 public enum TrafficControl implements CodedEnum {
 
@@ -23,12 +21,5 @@ public enum TrafficControl implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<TrafficControl> {
-        public Conv() {
-            super(TrafficControl.class);
-        }
     }
 }
