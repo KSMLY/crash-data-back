@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum Sex implements CodedEnum {
 
     MALE(1),
@@ -17,12 +15,5 @@ public enum Sex implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<Sex> {
-        public Conv() {
-            super(Sex.class);
-        }
     }
 }

@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum Weather implements CodedEnum {
 
     CLEAR(1),
@@ -22,12 +20,5 @@ public enum Weather implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<Weather> {
-        public Conv() {
-            super(Weather.class);
-        }
     }
 }

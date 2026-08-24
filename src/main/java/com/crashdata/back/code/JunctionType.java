@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum JunctionType implements CodedEnum {
 
     AT_GRADE_CROSSROAD(1),
@@ -22,12 +20,5 @@ public enum JunctionType implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<JunctionType> {
-        public Conv() {
-            super(JunctionType.class);
-        }
     }
 }

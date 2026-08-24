@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum Manoeuvre implements CodedEnum {
 
     REVERSING(1),
@@ -28,12 +26,5 @@ public enum Manoeuvre implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<Manoeuvre> {
-        public Conv() {
-            super(Manoeuvre.class);
-        }
     }
 }

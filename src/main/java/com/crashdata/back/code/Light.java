@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum Light implements CodedEnum {
 
     DAYLIGHT(1),
@@ -20,12 +18,5 @@ public enum Light implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<Light> {
-        public Conv() {
-            super(Light.class);
-        }
     }
 }

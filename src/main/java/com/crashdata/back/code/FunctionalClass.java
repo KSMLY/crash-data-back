@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 // No other/unknown value in this list, unlike most of the code lists.
 public enum FunctionalClass implements CodedEnum {
 
@@ -19,12 +17,5 @@ public enum FunctionalClass implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<FunctionalClass> {
-        public Conv() {
-            super(FunctionalClass.class);
-        }
     }
 }

@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum ImpactType implements CodedEnum {
 
     NO_IMPACT(1),
@@ -25,12 +23,5 @@ public enum ImpactType implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<ImpactType> {
-        public Conv() {
-            super(ImpactType.class);
-        }
     }
 }

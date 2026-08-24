@@ -5,27 +5,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class WeatherTest {
 
-    private final Weather.Conv conv = new Weather.Conv();
-
     @Test
-    void writesTheWhoCode() {
-        assertEquals((short) 2, conv.convertToDatabaseColumn(Weather.RAIN));
+    void exposesTheWhoCode() {
+        assertEquals((short) 2, Weather.RAIN.getCode());
     }
 
     @Test
     void readsTheWhoCode() {
-        assertEquals(Weather.RAIN, conv.convertToEntityAttribute((short) 2));
-    }
-
-    @Test
-    void nullSurvivesBothWays() {
-        assertNull(conv.convertToDatabaseColumn(null));
-        assertNull(conv.convertToEntityAttribute(null));
+        assertEquals(Weather.RAIN, CodedEnum.fromCode(Weather.class, (short) 2));
     }
 
     @Test
     void badCodeThrows() {
         assertThrows(IllegalArgumentException.class,
-                () -> conv.convertToEntityAttribute((short) 7));
+                () -> CodedEnum.fromCode(Weather.class, (short) 7));
     }
 }

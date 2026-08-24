@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum SeatPosition implements CodedEnum {
 
     LEFT(1),
@@ -20,12 +18,5 @@ public enum SeatPosition implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<SeatPosition> {
-        public Conv() {
-            super(SeatPosition.class);
-        }
     }
 }

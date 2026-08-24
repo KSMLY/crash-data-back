@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum AlcoholSuspected implements CodedEnum {
 
     NO(1),
@@ -18,12 +16,5 @@ public enum AlcoholSuspected implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<AlcoholSuspected> {
-        public Conv() {
-            super(AlcoholSuspected.class);
-        }
     }
 }

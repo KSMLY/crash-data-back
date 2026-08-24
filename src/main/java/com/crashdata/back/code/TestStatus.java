@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum TestStatus implements CodedEnum {
 
     NOT_GIVEN(1),
@@ -18,12 +16,5 @@ public enum TestStatus implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<TestStatus> {
-        public Conv() {
-            super(TestStatus.class);
-        }
     }
 }

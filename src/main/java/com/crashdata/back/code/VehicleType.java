@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 public enum VehicleType implements CodedEnum {
 
     BICYCLE(1),
@@ -23,12 +21,5 @@ public enum VehicleType implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<VehicleType> {
-        public Conv() {
-            super(VehicleType.class);
-        }
     }
 }

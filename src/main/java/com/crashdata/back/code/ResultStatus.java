@@ -1,7 +1,5 @@
 package com.crashdata.back.code;
 
-import jakarta.persistence.Converter;
-
 // Local codes, not WHO's - the spec gives no numbers for these values.
 public enum ResultStatus implements CodedEnum {
 
@@ -18,12 +16,5 @@ public enum ResultStatus implements CodedEnum {
     @Override
     public short getCode() {
         return code;
-    }
-
-    @Converter(autoApply = true)
-    public static class Conv extends CodedEnumConverter<ResultStatus> {
-        public Conv() {
-            super(ResultStatus.class);
-        }
     }
 }
