@@ -6,25 +6,19 @@ import com.crashdata.back.dao.MunicipalityDao;
 import com.crashdata.back.entity.District;
 import com.crashdata.back.entity.Governorate;
 import com.crashdata.back.entity.Municipality;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class LocationService {
 
     private final GovernorateDao governorateDao;
     private final DistrictDao districtDao;
     private final MunicipalityDao municipalityDao;
-
-    public LocationService(GovernorateDao governorateDao,
-                           DistrictDao districtDao,
-                           MunicipalityDao municipalityDao) {
-        this.governorateDao = governorateDao;
-        this.districtDao = districtDao;
-        this.municipalityDao = municipalityDao;
-    }
 
     @Cacheable("governorates")
     public List<Governorate> getGovernorates() {

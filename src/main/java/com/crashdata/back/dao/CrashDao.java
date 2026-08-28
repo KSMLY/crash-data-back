@@ -3,6 +3,7 @@ package com.crashdata.back.dao;
 import com.crashdata.back.code.CodedEnum;
 import com.crashdata.back.code.TrafficControl;
 import com.crashdata.back.entity.Crash;
+import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -19,6 +20,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Repository
+@AllArgsConstructor
 public class CrashDao {
 
     private static final String BASE = """
@@ -55,10 +57,6 @@ public class CrashDao {
             CONTROLS + " WHERE crash_id = ?";
 
     private final JdbcTemplate jdbcTemplate;
-
-    public CrashDao(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     public List<Crash> findAll() {
         return jdbcTemplate.query(FIND_ALL, new CrashRowMapper(loadControls(CONTROLS)));

@@ -7,6 +7,7 @@ import com.crashdata.back.entity.District;
 import com.crashdata.back.entity.Governorate;
 import com.crashdata.back.entity.Municipality;
 import com.crashdata.back.service.LocationService;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,13 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
+@AllArgsConstructor
 public class LocationController {
 
     private final LocationService locationService;
-
-    public LocationController(LocationService locationService) {
-        this.locationService = locationService;
-    }
 
     @GetMapping("/governorates")
     public List<GovernorateDto> getGovernorates() {
