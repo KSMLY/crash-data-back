@@ -2,6 +2,7 @@ package com.crashdata.back.dao;
 
 import com.crashdata.back.code.*;
 import com.crashdata.back.entity.Crash;
+import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
@@ -11,13 +12,10 @@ import java.time.LocalTime;
 import java.util.Map;
 import java.util.Set;
 
+@AllArgsConstructor
 public class CrashRowMapper implements RowMapper<Crash> {
 
     private final Map<Long, Set<TrafficControl>> controlsByCrashId;
-
-    public CrashRowMapper(Map<Long, Set<TrafficControl>> controlsByCrashId) {
-        this.controlsByCrashId = controlsByCrashId;
-    }
 
     @Override
     public Crash mapRow(ResultSet rs, int rowNum) throws SQLException {

@@ -5,6 +5,7 @@ import com.crashdata.back.dto.CrashDto;
 import com.crashdata.back.dto.CrashRequest;
 import com.crashdata.back.entity.Crash;
 import com.crashdata.back.service.CrashService;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,13 +17,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
+@AllArgsConstructor
 public class CrashController {
 
     private final CrashService crashService;
-
-    public CrashController(CrashService crashService) {
-        this.crashService = crashService;
-    }
 
     @GetMapping("/crashes")
     public List<CrashDto> getCrashes() {

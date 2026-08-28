@@ -1,6 +1,7 @@
 package com.crashdata.back.dao;
 
 import com.crashdata.back.entity.District;
+import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
+@AllArgsConstructor
 public class DistrictDao {
 
     private static final String BASE =
@@ -26,10 +28,6 @@ public class DistrictDao {
             rs.getString("name_ar"));
 
     private final JdbcTemplate jdbcTemplate;
-
-    public DistrictDao(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     public List<District> findByGovernorateId(Long governorateId) {
         return jdbcTemplate.query(FIND_BY_GOVERNORATE, ROW_MAPPER, governorateId);
