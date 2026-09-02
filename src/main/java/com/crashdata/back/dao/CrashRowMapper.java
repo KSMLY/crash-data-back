@@ -30,25 +30,19 @@ public class CrashRowMapper implements RowMapper<Crash> {
                 rs.getObject("municipality_id", Long.class),
                 rs.getBigDecimal("latitude"),
                 rs.getBigDecimal("longitude"),
-                code(rs, "crash_type_code", CrashType.class),
-                code(rs, "impact_type_code", ImpactType.class),
-                code(rs, "weather_code", Weather.class),
-                code(rs, "light_code", Light.class),
-                code(rs, "severity_code", CrashSeverity.class),
-                code(rs, "roadway_type_code", RoadwayType.class),
-                code(rs, "functional_class_code", FunctionalClass.class),
+                Codes.of(rs, "crash_type_code", CrashType.class),
+                Codes.of(rs, "impact_type_code", ImpactType.class),
+                Codes.of(rs, "weather_code", Weather.class),
+                Codes.of(rs, "light_code", Light.class),
+                Codes.of(rs, "severity_code", CrashSeverity.class),
+                Codes.of(rs, "roadway_type_code", RoadwayType.class),
+                Codes.of(rs, "functional_class_code", FunctionalClass.class),
                 rs.getShort("speed_limit_kmh"),
-                code(rs, "obstacle_present_code", ObstaclePresent.class),
-                code(rs, "surface_condition_code", SurfaceCondition.class),
-                code(rs, "junction_type_code", JunctionType.class),
-                code(rs, "curve_code", Curve.class),
-                code(rs, "grade_code", Grade.class),
+                Codes.of(rs, "obstacle_present_code", ObstaclePresent.class),
+                Codes.of(rs, "surface_condition_code", SurfaceCondition.class),
+                Codes.of(rs, "junction_type_code", JunctionType.class),
+                Codes.of(rs, "curve_code", Curve.class),
+                Codes.of(rs, "grade_code", Grade.class),
                 controlsByCrashId.getOrDefault(id, Set.of()));
-    }
-
-    private static <E extends Enum<E> & CodedEnum> E code(ResultSet rs, String column, Class<E> type)
-            throws SQLException {
-        Short value = rs.getObject(column, Short.class);
-        return value == null ? null : CodedEnum.fromCode(type, value);
     }
 }

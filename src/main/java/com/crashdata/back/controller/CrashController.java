@@ -1,9 +1,17 @@
 package com.crashdata.back.controller;
 
 import com.crashdata.back.code.*;
+import com.crashdata.back.dto.AlcoholTestDto;
+import com.crashdata.back.dto.CrashDetailDto;
 import com.crashdata.back.dto.CrashDto;
 import com.crashdata.back.dto.CrashRequest;
+import com.crashdata.back.dto.PersonDto;
+import com.crashdata.back.dto.VehicleDto;
+import com.crashdata.back.entity.AlcoholTest;
 import com.crashdata.back.entity.Crash;
+import com.crashdata.back.entity.CrashDetail;
+import com.crashdata.back.entity.Person;
+import com.crashdata.back.entity.Vehicle;
 import com.crashdata.back.service.CrashService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,8 +38,8 @@ public class CrashController {
     }
 
     @GetMapping("/crashes/{id}")
-    public CrashDto getCrash(@PathVariable Long id) {
-        return crashService.getCrash(id)
+    public CrashDetailDto getCrash(@PathVariable Long id) {
+        return crashService.getCrashDetail(id)
                 .map(CrashController::toDto)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
@@ -109,6 +117,60 @@ public class CrashController {
                         .map(TrafficControl::getCode)
                         .sorted()
                         .toList());
+    }
+
+    private static CrashDetailDto toDto(CrashDetail detail) {
+        return new CrashDetailDto(
+                toDto(detail.crash()),
+                detail.vehicles().stream()
+                        .map(CrashController::toDto)
+                        .toList(),
+                detail.persons().stream()
+                        .map(person -> toDto(person, detail.testsByPersonId().get(person.getId())))
+                        .toList());
+    }
+
+    private static VehicleDto toDto(Vehicle vehicle) {
+        return new VehicleDto(
+                vehicle.getId(),
+                vehicle.getVehicleNumber(),
+                code(vehicle.getVehicleType()),
+                vehicle.getMake(),
+                vehicle.getModel(),
+                vehicle.getModelYear(),
+                vehicle.getEngineCc(),
+                code(vehicle.getSpecialFunction()),
+                code(vehicle.getManoeuvre()));
+    }
+
+    private static PersonDto toDto(Person person, AlcoholTest test) {
+        return new PersonDto(
+                person.getId(),
+                person.getPersonNumber(),
+                person.getOccupantVehicleId(),
+                person.getStruckByVehicleId(),
+                person.getDateOfBirth(),
+                code(person.getSex()),
+                code(person.getRoadUserType()),
+                code(person.getSeatRow()),
+                code(person.getSeatPosition()),
+                code(person.getInjurySeverity()),
+                code(person.getRestraint()),
+                code(person.getHelmet()),
+                code(person.getPedManoeuvre()),
+                code(person.getAlcoholSuspected()),
+                code(person.getDrugUse()),
+                code(person.getLicenceStatus()),
+                person.getLicenceIssueDate(),
+                test == null ? null : toDto(test));
+    }
+
+    private static AlcoholTestDto toDto(AlcoholTest test) {
+        return new AlcoholTestDto(
+                code(test.getTestStatus()),
+                code(test.getTestType()),
+                code(test.getResultStatus()),
+                test.getResultValue());
     }
 
     private static Short code(CodedEnum value) {

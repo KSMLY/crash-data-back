@@ -1,7 +1,11 @@
 package com.crashdata.back.service;
 
+import com.crashdata.back.dao.AlcoholTestDao;
 import com.crashdata.back.dao.CrashDao;
+import com.crashdata.back.dao.PersonDao;
+import com.crashdata.back.dao.VehicleDao;
 import com.crashdata.back.entity.Crash;
+import com.crashdata.back.entity.CrashDetail;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,13 +18,21 @@ import java.util.Optional;
 public class CrashService {
 
     private final CrashDao crashDao;
+    private final VehicleDao vehicleDao;
+    private final PersonDao personDao;
+    private final AlcoholTestDao alcoholTestDao;
 
     public List<Crash> getCrashes() {
         return crashDao.findAll();
     }
 
-    public Optional<Crash> getCrash(Long crashId) {
-        return crashDao.findById(crashId);
+    public Optional<CrashDetail> getCrashDetail(Long crashId) {
+        return crashDao.findById(crashId)
+                .map(crash -> new CrashDetail(
+                        crash,
+                        vehicleDao.findByCrashId(crashId),
+                        personDao.findByCrashId(crashId),
+                        alcoholTestDao.findByCrashId(crashId)));
     }
 
     @Transactional
