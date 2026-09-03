@@ -32,6 +32,7 @@
         <sonar.organization>ksmly</sonar.organization>
         <sonar.projectKey>KSMLY_crash-data-back</sonar.projectKey>
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.exclusions>src/main/resources/db/migration/**</sonar.exclusions>
     </properties>
     <dependencies>
         <dependency>
