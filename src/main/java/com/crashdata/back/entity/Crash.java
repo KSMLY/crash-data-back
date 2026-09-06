@@ -36,4 +36,11 @@ public class Crash {
     private Curve curve;
     private Grade grade;
     private Set<TrafficControl> trafficControls;
+
+    public Crash withSeverity(CrashSeverity severity) {
+        return new Crash(id, policeRef, refYear, crashDate, crashTime, districtId, municipalityId,
+                latitude, longitude, crashType, impactType, weather, light, severity,
+                roadwayType, functionalClass, speedLimitKmh, obstaclePresent, surfaceCondition,
+                junctionType, curve, grade, trafficControls);
+    }
 }

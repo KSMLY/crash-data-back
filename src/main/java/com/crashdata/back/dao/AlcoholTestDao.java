@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.crashdata.back.code.CodedEnum.codeOf;
+
 @Repository
 @AllArgsConstructor
 public class AlcoholTestDao {
@@ -23,6 +25,11 @@ public class AlcoholTestDao {
             FROM alcohol_test a
             JOIN person p ON p.id = a.person_id
             WHERE p.crash_id = ?""";
+
+    private static final String INSERT = """
+            INSERT INTO alcohol_test (person_id, test_status_code, test_type_code,
+                                      result_status_code, result_value)
+            VALUES (?, ?, ?, ?, ?)""";
 
     private static final RowMapper<AlcoholTest> ROW_MAPPER = (rs, rowNum) -> new AlcoholTest(
             rs.getLong("person_id"),
@@ -36,5 +43,14 @@ public class AlcoholTestDao {
     public Map<Long, AlcoholTest> findByCrashId(Long crashId) {
         return jdbcTemplate.query(FIND_BY_CRASH, ROW_MAPPER, crashId).stream()
                 .collect(Collectors.toMap(AlcoholTest::getPersonId, Function.identity()));
+    }
+
+    public void insert(AlcoholTest test) {
+        jdbcTemplate.update(INSERT,
+                test.getPersonId(),
+                codeOf(test.getTestStatus()),
+                codeOf(test.getTestType()),
+                codeOf(test.getResultStatus()),
+                test.getResultValue());
     }
 }

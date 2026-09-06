@@ -19,6 +19,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.crashdata.back.code.CodedEnum.codeOf;
+
 @Repository
 @AllArgsConstructor
 public class CrashDao {
@@ -80,19 +82,19 @@ public class CrashDao {
             ps.setObject(6, crash.getMunicipalityId());
             ps.setObject(7, crash.getLatitude());
             ps.setObject(8, crash.getLongitude());
-            ps.setObject(9, code(crash.getCrashType()));
-            ps.setObject(10, code(crash.getImpactType()));
-            ps.setObject(11, code(crash.getWeather()));
-            ps.setObject(12, code(crash.getLight()));
-            ps.setObject(13, code(crash.getSeverity()));
-            ps.setObject(14, code(crash.getRoadwayType()));
-            ps.setObject(15, code(crash.getFunctionalClass()));
+            ps.setObject(9, codeOf(crash.getCrashType()));
+            ps.setObject(10, codeOf(crash.getImpactType()));
+            ps.setObject(11, codeOf(crash.getWeather()));
+            ps.setObject(12, codeOf(crash.getLight()));
+            ps.setObject(13, codeOf(crash.getSeverity()));
+            ps.setObject(14, codeOf(crash.getRoadwayType()));
+            ps.setObject(15, codeOf(crash.getFunctionalClass()));
             ps.setObject(16, crash.getSpeedLimitKmh());
-            ps.setObject(17, code(crash.getObstaclePresent()));
-            ps.setObject(18, code(crash.getSurfaceCondition()));
-            ps.setObject(19, code(crash.getJunctionType()));
-            ps.setObject(20, code(crash.getCurve()));
-            ps.setObject(21, code(crash.getGrade()));
+            ps.setObject(17, codeOf(crash.getObstaclePresent()));
+            ps.setObject(18, codeOf(crash.getSurfaceCondition()));
+            ps.setObject(19, codeOf(crash.getJunctionType()));
+            ps.setObject(20, codeOf(crash.getCurve()));
+            ps.setObject(21, codeOf(crash.getGrade()));
             return ps;
         }, keyHolder);
 
@@ -107,10 +109,6 @@ public class CrashDao {
                 .map(control -> new Object[]{crashId, control.getCode()})
                 .toList();
         jdbcTemplate.batchUpdate(INSERT_CONTROL, rows);
-    }
-
-    private static Short code(CodedEnum value) {
-        return value == null ? null : value.getCode();
     }
 
     private Map<Long, Set<TrafficControl>> loadControls(String sql, Object... args) {
