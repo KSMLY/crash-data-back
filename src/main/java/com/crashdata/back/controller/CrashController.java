@@ -4,12 +4,16 @@ import com.crashdata.back.code.*;
 import com.crashdata.back.dto.AlcoholTestDto;
 import com.crashdata.back.dto.CrashDetailDto;
 import com.crashdata.back.dto.CrashDto;
+import com.crashdata.back.dto.AlcoholTestRequest;
 import com.crashdata.back.dto.CrashRequest;
+import com.crashdata.back.dto.PersonRequest;
+import com.crashdata.back.dto.VehicleRequest;
 import com.crashdata.back.dto.PersonDto;
 import com.crashdata.back.dto.VehicleDto;
 import com.crashdata.back.entity.AlcoholTest;
 import com.crashdata.back.entity.Crash;
 import com.crashdata.back.entity.CrashDetail;
+import com.crashdata.back.entity.PersonSubmission;
 import com.crashdata.back.entity.Person;
 import com.crashdata.back.entity.Vehicle;
 import com.crashdata.back.service.CrashService;
@@ -23,6 +27,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.crashdata.back.code.CodedEnum.codeOf;
 
 @RestController
 @AllArgsConstructor
@@ -45,10 +51,68 @@ public class CrashController {
     }
 
     @PostMapping("/crashes")
-    public ResponseEntity<CrashDto> createCrash(@RequestBody CrashRequest request) {
-        Crash saved = crashService.createCrash(toEntity(request));
-        CrashDto dto = toDto(saved);
-        return ResponseEntity.created(URI.create("/crashes/" + dto.id())).body(dto);
+    public ResponseEntity<CrashDetailDto> createCrash(@RequestBody CrashRequest request) {
+        CrashDetail saved = crashService.createCrash(
+                toEntity(request),
+                nullToEmpty(request.vehicles()).stream().map(CrashController::toEntity).toList(),
+                nullToEmpty(request.persons()).stream().map(CrashController::toSubmission).toList());
+        CrashDetailDto dto = toDto(saved);
+        return ResponseEntity.created(URI.create("/crashes/" + dto.getCrash().id())).body(dto);
+    }
+
+    private static Vehicle toEntity(VehicleRequest request) {
+        return new Vehicle(
+                null,
+                null,
+                request.vehicleNumber(),
+                value(VehicleType.class, request.vehicleTypeCode()),
+                request.make(),
+                request.model(),
+                request.modelYear(),
+                request.engineCc(),
+                value(SpecialFunction.class, request.specialFunctionCode()),
+                value(Manoeuvre.class, request.manoeuvreCode()));
+    }
+
+    private static PersonSubmission toSubmission(PersonRequest request) {
+        Person person = new Person(
+                null,
+                null,
+                request.personNumber(),
+                null,
+                null,
+                request.dateOfBirth(),
+                value(Sex.class, request.sexCode()),
+                value(RoadUserType.class, request.roadUserTypeCode()),
+                value(SeatRow.class, request.seatRowCode()),
+                value(SeatPosition.class, request.seatPositionCode()),
+                value(InjurySeverity.class, request.injurySeverityCode()),
+                value(Restraint.class, request.restraintCode()),
+                value(Helmet.class, request.helmetCode()),
+                value(PedManoeuvre.class, request.pedManoeuvreCode()),
+                value(AlcoholSuspected.class, request.alcoholSuspectedCode()),
+                value(DrugUse.class, request.drugUseCode()),
+                value(LicenceStatus.class, request.licenceStatusCode()),
+                request.licenceIssueDate());
+        return new PersonSubmission(
+                person,
+                request.occupantVehicleNumber(),
+                request.struckByVehicleNumber(),
+                toEntity(request.alcoholTest()));
+    }
+
+    private static AlcoholTest toEntity(AlcoholTestRequest request) {
+        if (request == null) return null;
+        return new AlcoholTest(
+                null,
+                value(TestStatus.class, request.testStatusCode()),
+                value(TestType.class, request.testTypeCode()),
+                value(ResultStatus.class, request.resultStatusCode()),
+                request.resultValue());
+    }
+
+    private static <T> List<T> nullToEmpty(List<T> values) {
+        return values == null ? List.of() : values;
     }
 
     private static Crash toEntity(CrashRequest request) {
@@ -66,7 +130,7 @@ public class CrashController {
                 value(ImpactType.class, request.impactTypeCode()),
                 value(Weather.class, request.weatherCode()),
                 value(Light.class, request.lightCode()),
-                value(CrashSeverity.class, request.severityCode()),
+                null,
                 value(RoadwayType.class, request.roadwayTypeCode()),
                 value(FunctionalClass.class, request.functionalClassCode()),
                 request.speedLimitKmh(),
@@ -100,19 +164,19 @@ public class CrashController {
                 crash.getMunicipalityId(),
                 crash.getLatitude(),
                 crash.getLongitude(),
-                code(crash.getCrashType()),
-                code(crash.getImpactType()),
-                code(crash.getWeather()),
-                code(crash.getLight()),
-                code(crash.getSeverity()),
-                code(crash.getRoadwayType()),
-                code(crash.getFunctionalClass()),
+                codeOf(crash.getCrashType()),
+                codeOf(crash.getImpactType()),
+                codeOf(crash.getWeather()),
+                codeOf(crash.getLight()),
+                codeOf(crash.getSeverity()),
+                codeOf(crash.getRoadwayType()),
+                codeOf(crash.getFunctionalClass()),
                 crash.getSpeedLimitKmh(),
-                code(crash.getObstaclePresent()),
-                code(crash.getSurfaceCondition()),
-                code(crash.getJunctionType()),
-                code(crash.getCurve()),
-                code(crash.getGrade()),
+                codeOf(crash.getObstaclePresent()),
+                codeOf(crash.getSurfaceCondition()),
+                codeOf(crash.getJunctionType()),
+                codeOf(crash.getCurve()),
+                codeOf(crash.getGrade()),
                 crash.getTrafficControls().stream()
                         .map(TrafficControl::getCode)
                         .sorted()
@@ -134,13 +198,13 @@ public class CrashController {
         return new VehicleDto(
                 vehicle.getId(),
                 vehicle.getVehicleNumber(),
-                code(vehicle.getVehicleType()),
+                codeOf(vehicle.getVehicleType()),
                 vehicle.getMake(),
                 vehicle.getModel(),
                 vehicle.getModelYear(),
                 vehicle.getEngineCc(),
-                code(vehicle.getSpecialFunction()),
-                code(vehicle.getManoeuvre()));
+                codeOf(vehicle.getSpecialFunction()),
+                codeOf(vehicle.getManoeuvre()));
     }
 
     private static PersonDto toDto(Person person, AlcoholTest test) {
@@ -150,30 +214,26 @@ public class CrashController {
                 person.getOccupantVehicleId(),
                 person.getStruckByVehicleId(),
                 person.getDateOfBirth(),
-                code(person.getSex()),
-                code(person.getRoadUserType()),
-                code(person.getSeatRow()),
-                code(person.getSeatPosition()),
-                code(person.getInjurySeverity()),
-                code(person.getRestraint()),
-                code(person.getHelmet()),
-                code(person.getPedManoeuvre()),
-                code(person.getAlcoholSuspected()),
-                code(person.getDrugUse()),
-                code(person.getLicenceStatus()),
+                codeOf(person.getSex()),
+                codeOf(person.getRoadUserType()),
+                codeOf(person.getSeatRow()),
+                codeOf(person.getSeatPosition()),
+                codeOf(person.getInjurySeverity()),
+                codeOf(person.getRestraint()),
+                codeOf(person.getHelmet()),
+                codeOf(person.getPedManoeuvre()),
+                codeOf(person.getAlcoholSuspected()),
+                codeOf(person.getDrugUse()),
+                codeOf(person.getLicenceStatus()),
                 person.getLicenceIssueDate(),
                 test == null ? null : toDto(test));
     }
 
     private static AlcoholTestDto toDto(AlcoholTest test) {
         return new AlcoholTestDto(
-                code(test.getTestStatus()),
-                code(test.getTestType()),
-                code(test.getResultStatus()),
+                codeOf(test.getTestStatus()),
+                codeOf(test.getTestType()),
+                codeOf(test.getResultStatus()),
                 test.getResultValue());
-    }
-
-    private static Short code(CodedEnum value) {
-        return value == null ? null : value.getCode();
     }
 }

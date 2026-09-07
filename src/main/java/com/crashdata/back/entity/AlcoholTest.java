@@ -16,4 +16,8 @@ public class AlcoholTest {
     private TestType testType;
     private ResultStatus resultStatus;
     private BigDecimal resultValue;
+
+    public AlcoholTest withPersonId(Long personId) {
+        return new AlcoholTest(personId, testStatus, testType, resultStatus, resultValue);
+    }
 }

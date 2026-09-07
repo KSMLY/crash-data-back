@@ -18,7 +18,6 @@ public record CrashRequest (
             Short impactTypeCode,
             Short weatherCode,
             Short lightCode,
-            Short severityCode,
             Short roadwayTypeCode,
             Short functionalClassCode,
             Short speedLimitKmh,
@@ -27,5 +26,7 @@ public record CrashRequest (
             Short junctionTypeCode,
             Short curveCode,
             Short gradeCode,
-            List<Short> trafficControlCodes) {
+            List<Short> trafficControlCodes,
+            List<VehicleRequest> vehicles,
+            List<PersonRequest> persons) {
 }

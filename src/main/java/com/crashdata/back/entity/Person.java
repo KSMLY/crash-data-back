@@ -29,4 +29,11 @@ public class Person {
     private LicenceStatus licenceStatus;
     private LocalDate licenceIssueDate;
 
+
+    public Person withIds(Long crashId, Long occupantVehicleId, Long struckByVehicleId) {
+        return new Person(id, crashId, personNumber, occupantVehicleId, struckByVehicleId,
+                dateOfBirth, sex, roadUserType, seatRow, seatPosition, injurySeverity,
+                restraint, helmet, pedManoeuvre, alcoholSuspected, drugUse,
+                licenceStatus, licenceIssueDate);
+    }
 }

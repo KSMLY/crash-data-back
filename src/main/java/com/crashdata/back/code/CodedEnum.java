@@ -9,4 +9,8 @@ public interface CodedEnum {
         throw new IllegalArgumentException(
                 "Unknown " + type.getSimpleName() + " code: " + code);
     }
+
+    static Short codeOf(CodedEnum value) {
+        return value == null ? null : value.getCode();
+    }
 }

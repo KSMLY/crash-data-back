@@ -20,4 +20,9 @@ public class Vehicle {
     private SpecialFunction specialFunction;
     private Manoeuvre manoeuvre;
 
+
+    public Vehicle withCrashId(Long crashId) {
+        return new Vehicle(id, crashId, vehicleNumber, vehicleType, make, model,
+                modelYear, engineCc, specialFunction, manoeuvre);
+    }
 }
