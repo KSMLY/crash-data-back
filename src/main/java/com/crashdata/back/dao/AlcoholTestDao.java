@@ -5,8 +5,10 @@ import com.crashdata.back.code.TestStatus;
 import com.crashdata.back.code.TestType;
 import com.crashdata.back.entity.AlcoholTest;
 import lombok.AllArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;
@@ -19,17 +21,8 @@ import static com.crashdata.back.code.CodedEnum.codeOf;
 @AllArgsConstructor
 public class AlcoholTestDao {
 
-    private static final String FIND_BY_CRASH = """
-            SELECT a.person_id, a.test_status_code, a.test_type_code,
-                   a.result_status_code, a.result_value
-            FROM alcohol_test a
-            JOIN person p ON p.id = a.person_id
-            WHERE p.crash_id = ?""";
-
-    private static final String INSERT = """
-            INSERT INTO alcohol_test (person_id, test_status_code, test_type_code,
-                                      result_status_code, result_value)
-            VALUES (?, ?, ?, ?, ?)""";
+    private static final String FIND_BY_CRASH = Sql.load("sql/alcohol-test/find-by-crash.sql");
+    private static final String INSERT = Sql.load("sql/alcohol-test/insert.sql");
 
     private static final RowMapper<AlcoholTest> ROW_MAPPER = (rs, rowNum) -> new AlcoholTest(
             rs.getLong("person_id"),
@@ -38,19 +31,24 @@ public class AlcoholTestDao {
             Codes.of(rs, "result_status_code", ResultStatus.class),
             rs.getBigDecimal("result_value"));
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
     public Map<Long, AlcoholTest> findByCrashId(Long crashId) {
-        return jdbcTemplate.query(FIND_BY_CRASH, ROW_MAPPER, crashId).stream()
+        return jdbcTemplate.query(FIND_BY_CRASH, new MapSqlParameterSource("crash_id", crashId), ROW_MAPPER)
+                .stream()
                 .collect(Collectors.toMap(AlcoholTest::getPersonId, Function.identity()));
     }
 
     public void insert(AlcoholTest test) {
-        jdbcTemplate.update(INSERT,
-                test.getPersonId(),
-                codeOf(test.getTestStatus()),
-                codeOf(test.getTestType()),
-                codeOf(test.getResultStatus()),
-                test.getResultValue());
+        jdbcTemplate.update(INSERT, parameters(test));
+    }
+
+    private static SqlParameterSource parameters(AlcoholTest test) {
+        return new MapSqlParameterSource()
+                .addValue("person_id", test.getPersonId())
+                .addValue("test_status_code", codeOf(test.getTestStatus()))
+                .addValue("test_type_code", codeOf(test.getTestType()))
+                .addValue("result_status_code", codeOf(test.getResultStatus()))
+                .addValue("result_value", test.getResultValue());
     }
 }

@@ -5,13 +5,14 @@ import com.crashdata.back.code.SpecialFunction;
 import com.crashdata.back.code.VehicleType;
 import com.crashdata.back.entity.Vehicle;
 import lombok.AllArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
 import java.util.List;
 import java.util.Objects;
 
@@ -21,19 +22,8 @@ import static com.crashdata.back.code.CodedEnum.codeOf;
 @AllArgsConstructor
 public class VehicleDao {
 
-    private static final String FIND_BY_CRASH = """
-            SELECT id, crash_id, vehicle_number, vehicle_type_code,
-                   make, model, model_year, engine_cc,
-                   special_function_code, manoeuvre_code
-            FROM vehicle
-            WHERE crash_id = ?
-            ORDER BY vehicle_number""";
-
-    private static final String INSERT = """
-            INSERT INTO vehicle (crash_id, vehicle_number, vehicle_type_code,
-                                 make, model, model_year, engine_cc,
-                                 special_function_code, manoeuvre_code)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""";
+    private static final String FIND_BY_CRASH = Sql.load("sql/vehicle/find-by-crash.sql");
+    private static final String INSERT = Sql.load("sql/vehicle/insert.sql");
 
     private static final RowMapper<Vehicle> ROW_MAPPER = (rs, rowNum) -> new Vehicle(
             rs.getLong("id"),
@@ -47,27 +37,28 @@ public class VehicleDao {
             Codes.of(rs, "special_function_code", SpecialFunction.class),
             Codes.of(rs, "manoeuvre_code", Manoeuvre.class));
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
     public List<Vehicle> findByCrashId(Long crashId) {
-        return jdbcTemplate.query(FIND_BY_CRASH, ROW_MAPPER, crashId);
+        return jdbcTemplate.query(FIND_BY_CRASH, new MapSqlParameterSource("crash_id", crashId), ROW_MAPPER);
     }
 
     public Long insert(Vehicle vehicle) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(con -> {
-            PreparedStatement ps = con.prepareStatement(INSERT, new String[]{"id"});
-            ps.setObject(1, vehicle.getCrashId());
-            ps.setObject(2, vehicle.getVehicleNumber());
-            ps.setObject(3, codeOf(vehicle.getVehicleType()));
-            ps.setObject(4, vehicle.getMake());
-            ps.setObject(5, vehicle.getModel());
-            ps.setObject(6, vehicle.getModelYear());
-            ps.setObject(7, vehicle.getEngineCc());
-            ps.setObject(8, codeOf(vehicle.getSpecialFunction()));
-            ps.setObject(9, codeOf(vehicle.getManoeuvre()));
-            return ps;
-        }, keyHolder);
+        jdbcTemplate.update(INSERT, parameters(vehicle), keyHolder, new String[]{"id"});
         return Objects.requireNonNull(keyHolder.getKey()).longValue();
+    }
+
+    private static SqlParameterSource parameters(Vehicle vehicle) {
+        return new MapSqlParameterSource()
+                .addValue("crash_id", vehicle.getCrashId())
+                .addValue("vehicle_number", vehicle.getVehicleNumber())
+                .addValue("vehicle_type_code", codeOf(vehicle.getVehicleType()))
+                .addValue("make", vehicle.getMake())
+                .addValue("model", vehicle.getModel())
+                .addValue("model_year", vehicle.getModelYear())
+                .addValue("engine_cc", vehicle.getEngineCc())
+                .addValue("special_function_code", codeOf(vehicle.getSpecialFunction()))
+                .addValue("manoeuvre_code", codeOf(vehicle.getManoeuvre()));
     }
 }
