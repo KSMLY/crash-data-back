@@ -91,6 +91,16 @@ class CrashServiceTest {
     }
 
     @Test
+    void rejectsCrashWhereAPersonHasNoInjurySeverityAtAll() {
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, ()
+                -> service.createCrash(crash(), List.of(),
+                List.of(submission(person((short) 1, null)))));
+
+        assertTrue(thrown.getMessage().contains("must be known"), thrown.getMessage());
+        verify(crashDao, never()).insert(any());
+    }
+
+    @Test
     void rejectsDuplicateVehicleNumbersBeforeInsertingAnyVehicle() {
         List<Vehicle> vehicles = List.of(vehicle((short) 1), vehicle((short) 1));
         List<PersonSubmission> persons =
