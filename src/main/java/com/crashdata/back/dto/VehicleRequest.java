@@ -1,12 +1,14 @@
 package com.crashdata.back.dto;
 
+import jakarta.validation.constraints.NotNull;
+
 public record VehicleRequest(
-        Short vehicleNumber,
-        Short vehicleTypeCode,
+        @NotNull Short vehicleNumber,
+        @NotNull Short vehicleTypeCode,
         String make,
         String model,
         Short modelYear,
         Integer engineCc,
-        Short specialFunctionCode,
-        Short manoeuvreCode) {
+        @NotNull Short specialFunctionCode,
+        @NotNull Short manoeuvreCode) {
 }

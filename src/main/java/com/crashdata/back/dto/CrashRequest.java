@@ -1,32 +1,35 @@
 package com.crashdata.back.dto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
 public record CrashRequest (
-            String policeRef,
-            Short refYear,
+            @NotNull String policeRef,
+            @NotNull Short refYear,
             LocalDate crashDate,
             LocalTime crashTime,
-            Long districtId,
+            @NotNull Long districtId,
             Long municipalityId,
             BigDecimal latitude,
             BigDecimal longitude,
-            Short crashTypeCode,
-            Short impactTypeCode,
-            Short weatherCode,
-            Short lightCode,
-            Short roadwayTypeCode,
+            @NotNull Short crashTypeCode,
+            @NotNull Short impactTypeCode,
+            @NotNull Short weatherCode,
+            @NotNull Short lightCode,
+            @NotNull Short roadwayTypeCode,
             Short functionalClassCode,
-            Short speedLimitKmh,
-            Short obstaclePresentCode,
-            Short surfaceConditionCode,
-            Short junctionTypeCode,
-            Short curveCode,
-            Short gradeCode,
+            @NotNull Short speedLimitKmh,
+            @NotNull Short obstaclePresentCode,
+            @NotNull Short surfaceConditionCode,
+            @NotNull Short junctionTypeCode,
+            @NotNull Short curveCode,
+            @NotNull Short gradeCode,
             List<Short> trafficControlCodes,
-            List<VehicleRequest> vehicles,
-            List<PersonRequest> persons) {
+            @Valid List<VehicleRequest> vehicles,
+            @Valid List<PersonRequest> persons) {
 }

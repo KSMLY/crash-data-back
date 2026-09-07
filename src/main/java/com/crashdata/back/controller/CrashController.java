@@ -17,6 +17,7 @@ import com.crashdata.back.entity.PersonSubmission;
 import com.crashdata.back.entity.Person;
 import com.crashdata.back.entity.Vehicle;
 import com.crashdata.back.service.CrashService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,7 +52,7 @@ public class CrashController {
     }
 
     @PostMapping("/crashes")
-    public ResponseEntity<CrashDetailDto> createCrash(@RequestBody CrashRequest request) {
+    public ResponseEntity<CrashDetailDto> createCrash(@Valid @RequestBody CrashRequest request) {
         CrashDetail saved = crashService.createCrash(
                 toEntity(request),
                 nullToEmpty(request.vehicles()).stream().map(CrashController::toEntity).toList(),

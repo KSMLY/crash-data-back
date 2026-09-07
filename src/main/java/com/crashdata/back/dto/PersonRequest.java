@@ -1,23 +1,26 @@
 package com.crashdata.back.dto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+
 import java.time.LocalDate;
 
 public record PersonRequest(
-        Short personNumber,
+        @NotNull Short personNumber,
         Short occupantVehicleNumber,
         Short struckByVehicleNumber,
         LocalDate dateOfBirth,
-        Short sexCode,
-        Short roadUserTypeCode,
-        Short seatRowCode,
-        Short seatPositionCode,
-        Short injurySeverityCode,
-        Short restraintCode,
-        Short helmetCode,
+        @NotNull Short sexCode,
+        @NotNull Short roadUserTypeCode,
+        @NotNull Short seatRowCode,
+        @NotNull Short seatPositionCode,
+        @NotNull Short injurySeverityCode,
+        @NotNull Short restraintCode,
+        @NotNull Short helmetCode,
         Short pedManoeuvreCode,
-        Short alcoholSuspectedCode,
-        Short drugUseCode,
+        @NotNull Short alcoholSuspectedCode,
+        @NotNull Short drugUseCode,
         Short licenceStatusCode,
         LocalDate licenceIssueDate,
-        AlcoholTestRequest alcoholTest) {
+        @Valid AlcoholTestRequest alcoholTest) {
 }
