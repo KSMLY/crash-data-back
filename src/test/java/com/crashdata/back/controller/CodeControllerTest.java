@@ -19,7 +19,7 @@ class CodeControllerTest {
     MockMvc mockMvc;
 
     // Listing all 30 lists here would just restate the map, so this covers the count plus
-    // three enums whose codes are not a plain 1..n run
+    // three enums whose names are worth pinning down
     @Test
     void getCodesServesEveryEnum() throws Exception {
         mockMvc.perform(get("/codes"))
@@ -27,9 +27,11 @@ class CodeControllerTest {
                 .andExpect(jsonPath("$.*", hasSize(30)))
                 .andExpect(content().json("""
                         {
-                          "weather": [1, 2, 3, 4, 5, 6, 8, 9],
-                          "crashSeverity": [1, 2, 3],
-                          "manoeuvre": [1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 8, 9]
+                          "weather": ["CLEAR", "RAIN", "SNOW", "FOG", "SLEET", "SEVERE_WINDS", "OTHER", "UNKNOWN"],
+                          "crashSeverity": ["FATAL", "SERIOUS", "SLIGHT"],
+                          "manoeuvre": ["REVERSING", "PARKED", "ENTERING_OR_LEAVING_PARKING", "SLOWING_OR_STOPPING",
+                                        "MOVING_OFF", "WAITING_TO_TURN", "TURNING", "CHANGING_LANE",
+                                        "AVOIDANCE_MANOEUVRE", "OVERTAKING", "STRAIGHT_FORWARD", "OTHER", "UNKNOWN"]
                         }
                         """, JsonCompareMode.LENIENT));
     }

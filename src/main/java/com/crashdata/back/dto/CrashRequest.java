@@ -1,5 +1,6 @@
 package com.crashdata.back.dto;
 
+import com.crashdata.back.code.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
@@ -17,19 +18,19 @@ public record CrashRequest (
             Long municipalityId,
             BigDecimal latitude,
             BigDecimal longitude,
-            @NotNull Short crashTypeCode,
-            @NotNull Short impactTypeCode,
-            @NotNull Short weatherCode,
-            @NotNull Short lightCode,
-            @NotNull Short roadwayTypeCode,
-            Short functionalClassCode,
+            @NotNull CrashType crashType,
+            @NotNull ImpactType impactType,
+            @NotNull Weather weather,
+            @NotNull Light light,
+            @NotNull RoadwayType roadwayType,
+            FunctionalClass functionalClass,
             @NotNull Short speedLimitKmh,
-            @NotNull Short obstaclePresentCode,
-            @NotNull Short surfaceConditionCode,
-            @NotNull Short junctionTypeCode,
-            @NotNull Short curveCode,
-            @NotNull Short gradeCode,
-            List<Short> trafficControlCodes,
+            @NotNull ObstaclePresent obstaclePresent,
+            @NotNull SurfaceCondition surfaceCondition,
+            @NotNull JunctionType junctionType,
+            @NotNull Curve curve,
+            @NotNull Grade grade,
+            List<TrafficControl> trafficControls,
             @Valid List<VehicleRequest> vehicles,
             @Valid List<PersonRequest> persons) {
 }

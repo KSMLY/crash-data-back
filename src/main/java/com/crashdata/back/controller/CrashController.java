@@ -4,6 +4,8 @@ import com.crashdata.back.code.*;
 import com.crashdata.back.dto.AlcoholTestDto;
 import com.crashdata.back.dto.CrashDetailDto;
 import com.crashdata.back.dto.CrashDto;
+import com.crashdata.back.dto.DistrictDto;
+import com.crashdata.back.dto.MunicipalityDto;
 import com.crashdata.back.dto.AlcoholTestRequest;
 import com.crashdata.back.dto.CrashRequest;
 import com.crashdata.back.dto.PersonRequest;
@@ -13,6 +15,8 @@ import com.crashdata.back.dto.VehicleDto;
 import com.crashdata.back.entity.AlcoholTest;
 import com.crashdata.back.entity.Crash;
 import com.crashdata.back.entity.CrashDetail;
+import com.crashdata.back.entity.District;
+import com.crashdata.back.entity.Municipality;
 import com.crashdata.back.entity.PersonSubmission;
 import com.crashdata.back.entity.Person;
 import com.crashdata.back.entity.Vehicle;
@@ -25,11 +29,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.crashdata.back.code.CodedEnum.codeOf;
 
 @RestController
 @AllArgsConstructor
@@ -66,13 +68,13 @@ public class CrashController {
                 null,
                 null,
                 request.vehicleNumber(),
-                value(VehicleType.class, request.vehicleTypeCode()),
+                request.vehicleType(),
                 request.make(),
                 request.model(),
                 request.modelYear(),
                 request.engineCc(),
-                value(SpecialFunction.class, request.specialFunctionCode()),
-                value(Manoeuvre.class, request.manoeuvreCode()));
+                request.specialFunction(),
+                request.manoeuvre());
     }
 
     private static PersonSubmission toSubmission(PersonRequest request) {
@@ -83,17 +85,17 @@ public class CrashController {
                 null,
                 null,
                 request.dateOfBirth(),
-                value(Sex.class, request.sexCode()),
-                value(RoadUserType.class, request.roadUserTypeCode()),
-                value(SeatRow.class, request.seatRowCode()),
-                value(SeatPosition.class, request.seatPositionCode()),
-                value(InjurySeverity.class, request.injurySeverityCode()),
-                value(Restraint.class, request.restraintCode()),
-                value(Helmet.class, request.helmetCode()),
-                value(PedManoeuvre.class, request.pedManoeuvreCode()),
-                value(AlcoholSuspected.class, request.alcoholSuspectedCode()),
-                value(DrugUse.class, request.drugUseCode()),
-                value(LicenceStatus.class, request.licenceStatusCode()),
+                request.sex(),
+                request.roadUserType(),
+                request.seatRow(),
+                request.seatPosition(),
+                request.injurySeverity(),
+                request.restraint(),
+                request.helmet(),
+                request.pedManoeuvre(),
+                request.alcoholSuspected(),
+                request.drugUse(),
+                request.licenceStatus(),
                 request.licenceIssueDate());
         return new PersonSubmission(
                 person,
@@ -106,9 +108,9 @@ public class CrashController {
         if (request == null) return null;
         return new AlcoholTest(
                 null,
-                value(TestStatus.class, request.testStatusCode()),
-                value(TestType.class, request.testTypeCode()),
-                value(ResultStatus.class, request.resultStatusCode()),
+                request.testStatus(),
+                request.testType(),
+                request.resultStatus(),
                 request.resultValue());
     }
 
@@ -123,35 +125,24 @@ public class CrashController {
                 request.refYear(),
                 request.crashDate(),
                 request.crashTime(),
-                request.districtId(),
-                request.municipalityId(),
+                District.ref(request.districtId()),
+                Municipality.ref(request.municipalityId()),
                 request.latitude(),
                 request.longitude(),
-                value(CrashType.class, request.crashTypeCode()),
-                value(ImpactType.class, request.impactTypeCode()),
-                value(Weather.class, request.weatherCode()),
-                value(Light.class, request.lightCode()),
+                request.crashType(),
+                request.impactType(),
+                request.weather(),
+                request.light(),
                 null,
-                value(RoadwayType.class, request.roadwayTypeCode()),
-                value(FunctionalClass.class, request.functionalClassCode()),
+                request.roadwayType(),
+                request.functionalClass(),
                 request.speedLimitKmh(),
-                value(ObstaclePresent.class, request.obstaclePresentCode()),
-                value(SurfaceCondition.class, request.surfaceConditionCode()),
-                value(JunctionType.class, request.junctionTypeCode()),
-                value(Curve.class, request.curveCode()),
-                value(Grade.class, request.gradeCode()),
-                controls(request.trafficControlCodes()));
-    }
-
-    private static <E extends Enum<E> & CodedEnum> E value(Class<E> type, Short code) {
-        return code == null ? null : CodedEnum.fromCode(type, code);
-    }
-
-    private static Set<TrafficControl> controls(List<Short> codes) {
-        if (codes == null) return Set.of();
-        return codes.stream()
-                .map(code -> value(TrafficControl.class, code))
-                .collect(Collectors.toSet());
+                request.obstaclePresent(),
+                request.surfaceCondition(),
+                request.junctionType(),
+                request.curve(),
+                request.grade(),
+                Set.copyOf(nullToEmpty(request.trafficControls())));
     }
 
     private static CrashDto toDto(Crash crash) {
@@ -161,26 +152,25 @@ public class CrashController {
                 crash.getRefYear(),
                 crash.getCrashDate(),
                 crash.getCrashTime(),
-                crash.getDistrictId(),
-                crash.getMunicipalityId(),
+                toDto(crash.getDistrict()),
+                toDto(crash.getMunicipality()),
                 crash.getLatitude(),
                 crash.getLongitude(),
-                codeOf(crash.getCrashType()),
-                codeOf(crash.getImpactType()),
-                codeOf(crash.getWeather()),
-                codeOf(crash.getLight()),
-                codeOf(crash.getSeverity()),
-                codeOf(crash.getRoadwayType()),
-                codeOf(crash.getFunctionalClass()),
+                crash.getCrashType(),
+                crash.getImpactType(),
+                crash.getWeather(),
+                crash.getLight(),
+                crash.getSeverity(),
+                crash.getRoadwayType(),
+                crash.getFunctionalClass(),
                 crash.getSpeedLimitKmh(),
-                codeOf(crash.getObstaclePresent()),
-                codeOf(crash.getSurfaceCondition()),
-                codeOf(crash.getJunctionType()),
-                codeOf(crash.getCurve()),
-                codeOf(crash.getGrade()),
+                crash.getObstaclePresent(),
+                crash.getSurfaceCondition(),
+                crash.getJunctionType(),
+                crash.getCurve(),
+                crash.getGrade(),
                 crash.getTrafficControls().stream()
-                        .map(TrafficControl::getCode)
-                        .sorted()
+                        .sorted(Comparator.comparing(TrafficControl::getCode))
                         .toList());
     }
 
@@ -195,17 +185,28 @@ public class CrashController {
                         .toList());
     }
 
+    private static DistrictDto toDto(District district) {
+        return new DistrictDto(district.getId(), district.getGovernorateId(),
+                district.getNameEn(), district.getNameAr());
+    }
+
+    private static MunicipalityDto toDto(Municipality municipality) {
+        if (municipality == null) return null;
+        return new MunicipalityDto(municipality.getId(), municipality.getDistrictId(),
+                municipality.getNameEn(), municipality.getNameAr());
+    }
+
     private static VehicleDto toDto(Vehicle vehicle) {
         return new VehicleDto(
                 vehicle.getId(),
                 vehicle.getVehicleNumber(),
-                codeOf(vehicle.getVehicleType()),
+                vehicle.getVehicleType(),
                 vehicle.getMake(),
                 vehicle.getModel(),
                 vehicle.getModelYear(),
                 vehicle.getEngineCc(),
-                codeOf(vehicle.getSpecialFunction()),
-                codeOf(vehicle.getManoeuvre()));
+                vehicle.getSpecialFunction(),
+                vehicle.getManoeuvre());
     }
 
     private static PersonDto toDto(Person person, AlcoholTest test) {
@@ -215,26 +216,26 @@ public class CrashController {
                 person.getOccupantVehicleId(),
                 person.getStruckByVehicleId(),
                 person.getDateOfBirth(),
-                codeOf(person.getSex()),
-                codeOf(person.getRoadUserType()),
-                codeOf(person.getSeatRow()),
-                codeOf(person.getSeatPosition()),
-                codeOf(person.getInjurySeverity()),
-                codeOf(person.getRestraint()),
-                codeOf(person.getHelmet()),
-                codeOf(person.getPedManoeuvre()),
-                codeOf(person.getAlcoholSuspected()),
-                codeOf(person.getDrugUse()),
-                codeOf(person.getLicenceStatus()),
+                person.getSex(),
+                person.getRoadUserType(),
+                person.getSeatRow(),
+                person.getSeatPosition(),
+                person.getInjurySeverity(),
+                person.getRestraint(),
+                person.getHelmet(),
+                person.getPedManoeuvre(),
+                person.getAlcoholSuspected(),
+                person.getDrugUse(),
+                person.getLicenceStatus(),
                 person.getLicenceIssueDate(),
                 test == null ? null : toDto(test));
     }
 
     private static AlcoholTestDto toDto(AlcoholTest test) {
         return new AlcoholTestDto(
-                codeOf(test.getTestStatus()),
-                codeOf(test.getTestType()),
-                codeOf(test.getResultStatus()),
+                test.getTestStatus(),
+                test.getTestType(),
+                test.getResultStatus(),
                 test.getResultValue());
     }
 }

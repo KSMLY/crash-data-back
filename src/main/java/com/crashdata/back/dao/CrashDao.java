@@ -3,6 +3,7 @@ package com.crashdata.back.dao;
 import com.crashdata.back.code.CodedEnum;
 import com.crashdata.back.code.TrafficControl;
 import com.crashdata.back.entity.Crash;
+import com.crashdata.back.entity.Municipality;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -63,8 +64,8 @@ public class CrashDao {
                 .addValue("ref_year", crash.getRefYear())
                 .addValue("crash_date", crash.getCrashDate())
                 .addValue("crash_time", crash.getCrashTime())
-                .addValue("district_id", crash.getDistrictId())
-                .addValue("municipality_id", crash.getMunicipalityId())
+                .addValue("district_id", crash.getDistrict().getId())
+                .addValue("municipality_id", idOf(crash.getMunicipality()))
                 .addValue("latitude", crash.getLatitude())
                 .addValue("longitude", crash.getLongitude())
                 .addValue("crash_type_code", codeOf(crash.getCrashType()))
@@ -80,6 +81,10 @@ public class CrashDao {
                 .addValue("junction_type_code", codeOf(crash.getJunctionType()))
                 .addValue("curve_code", codeOf(crash.getCurve()))
                 .addValue("grade_code", codeOf(crash.getGrade()));
+    }
+
+    private static Long idOf(Municipality municipality) {
+        return municipality == null ? null : municipality.getId();
     }
 
     private void insertControls(long crashId, Set<TrafficControl> controls) {

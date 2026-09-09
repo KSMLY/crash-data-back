@@ -4,54 +4,48 @@ import com.crashdata.back.code.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 public class CodeController {
 
-    private static final Map<String, List<Short>> CODES = Map.ofEntries(
-            Map.entry("alcoholSuspected", codesOf(AlcoholSuspected.values())),
-            Map.entry("crashSeverity", codesOf(CrashSeverity.values())),
-            Map.entry("crashType", codesOf(CrashType.values())),
-            Map.entry("curve", codesOf(Curve.values())),
-            Map.entry("drugUse", codesOf(DrugUse.values())),
-            Map.entry("functionalClass", codesOf(FunctionalClass.values())),
-            Map.entry("grade", codesOf(Grade.values())),
-            Map.entry("helmet", codesOf(Helmet.values())),
-            Map.entry("impactType", codesOf(ImpactType.values())),
-            Map.entry("injurySeverity", codesOf(InjurySeverity.values())),
-            Map.entry("junctionType", codesOf(JunctionType.values())),
-            Map.entry("licenceStatus", codesOf(LicenceStatus.values())),
-            Map.entry("light", codesOf(Light.values())),
-            Map.entry("manoeuvre", codesOf(Manoeuvre.values())),
-            Map.entry("obstaclePresent", codesOf(ObstaclePresent.values())),
-            Map.entry("pedManoeuvre", codesOf(PedManoeuvre.values())),
-            Map.entry("restraint", codesOf(Restraint.values())),
-            Map.entry("resultStatus", codesOf(ResultStatus.values())),
-            Map.entry("roadUserType", codesOf(RoadUserType.values())),
-            Map.entry("roadwayType", codesOf(RoadwayType.values())),
-            Map.entry("seatPosition", codesOf(SeatPosition.values())),
-            Map.entry("seatRow", codesOf(SeatRow.values())),
-            Map.entry("sex", codesOf(Sex.values())),
-            Map.entry("specialFunction", codesOf(SpecialFunction.values())),
-            Map.entry("surfaceCondition", codesOf(SurfaceCondition.values())),
-            Map.entry("testStatus", codesOf(TestStatus.values())),
-            Map.entry("testType", codesOf(TestType.values())),
-            Map.entry("trafficControl", codesOf(TrafficControl.values())),
-            Map.entry("vehicleType", codesOf(VehicleType.values())),
-            Map.entry("weather", codesOf(Weather.values()))
+    private static final Map<String, List<? extends Enum<?>>> CODES = Map.ofEntries(
+            Map.entry("alcoholSuspected", List.of(AlcoholSuspected.values())),
+            Map.entry("crashSeverity", List.of(CrashSeverity.values())),
+            Map.entry("crashType", List.of(CrashType.values())),
+            Map.entry("curve", List.of(Curve.values())),
+            Map.entry("drugUse", List.of(DrugUse.values())),
+            Map.entry("functionalClass", List.of(FunctionalClass.values())),
+            Map.entry("grade", List.of(Grade.values())),
+            Map.entry("helmet", List.of(Helmet.values())),
+            Map.entry("impactType", List.of(ImpactType.values())),
+            Map.entry("injurySeverity", List.of(InjurySeverity.values())),
+            Map.entry("junctionType", List.of(JunctionType.values())),
+            Map.entry("licenceStatus", List.of(LicenceStatus.values())),
+            Map.entry("light", List.of(Light.values())),
+            Map.entry("manoeuvre", List.of(Manoeuvre.values())),
+            Map.entry("obstaclePresent", List.of(ObstaclePresent.values())),
+            Map.entry("pedManoeuvre", List.of(PedManoeuvre.values())),
+            Map.entry("restraint", List.of(Restraint.values())),
+            Map.entry("resultStatus", List.of(ResultStatus.values())),
+            Map.entry("roadUserType", List.of(RoadUserType.values())),
+            Map.entry("roadwayType", List.of(RoadwayType.values())),
+            Map.entry("seatPosition", List.of(SeatPosition.values())),
+            Map.entry("seatRow", List.of(SeatRow.values())),
+            Map.entry("sex", List.of(Sex.values())),
+            Map.entry("specialFunction", List.of(SpecialFunction.values())),
+            Map.entry("surfaceCondition", List.of(SurfaceCondition.values())),
+            Map.entry("testStatus", List.of(TestStatus.values())),
+            Map.entry("testType", List.of(TestType.values())),
+            Map.entry("trafficControl", List.of(TrafficControl.values())),
+            Map.entry("vehicleType", List.of(VehicleType.values())),
+            Map.entry("weather", List.of(Weather.values()))
     );
 
     @GetMapping("/codes")
-    public Map<String, List<Short>> getCodes() {
+    public Map<String, List<? extends Enum<?>>> getCodes() {
         return CODES;
     }
 
-    private static <E extends Enum<E> & CodedEnum> List<Short> codesOf(E[] values) {
-        return Arrays.stream(values)
-                .map(CodedEnum::getCode)
-                .toList();
-    }
 }

@@ -1,5 +1,7 @@
 package com.crashdata.back.dto;
 
+import com.crashdata.back.code.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -11,22 +13,22 @@ public record CrashDto(
         Short refYear,
         LocalDate crashDate,
         LocalTime crashTime,
-        Long districtId,
-        Long municipalityId,
+        DistrictDto district,
+        MunicipalityDto municipality,
         BigDecimal latitude,
         BigDecimal longitude,
-        Short crashTypeCode,
-        Short impactTypeCode,
-        Short weatherCode,
-        Short lightCode,
-        Short severityCode,
-        Short roadwayTypeCode,
-        Short functionalClassCode,
+        CrashType crashType,
+        ImpactType impactType,
+        Weather weather,
+        Light light,
+        CrashSeverity severity,
+        RoadwayType roadwayType,
+        FunctionalClass functionalClass,
         Short speedLimitKmh,
-        Short obstaclePresentCode,
-        Short surfaceConditionCode,
-        Short junctionTypeCode,
-        Short curveCode,
-        Short gradeCode,
-        List<Short> trafficControlCodes) {
+        ObstaclePresent obstaclePresent,
+        SurfaceCondition surfaceCondition,
+        JunctionType junctionType,
+        Curve curve,
+        Grade grade,
+        List<TrafficControl> trafficControls) {
 }
