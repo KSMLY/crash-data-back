@@ -2,6 +2,8 @@ package com.crashdata.back.dao;
 
 import com.crashdata.back.code.*;
 import com.crashdata.back.entity.Crash;
+import com.crashdata.back.entity.District;
+import com.crashdata.back.entity.Municipality;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,11 +42,23 @@ class CrashDaoTest {
     // district_id is NOT NULL with a foreign key, so the tests borrow rows Flyway seeded
     private Long districtId;
     private Long municipalityId;
+    private District seededDistrict;
+    private Municipality seededMunicipality;
 
     @BeforeEach
     void readSeededAdminDivisions() {
         districtId = jdbcTemplate.queryForObject("SELECT MIN(id) FROM district", Long.class);
         municipalityId = jdbcTemplate.queryForObject("SELECT MIN(id) FROM municipality", Long.class);
+        seededDistrict = jdbcTemplate.queryForObject(
+                "SELECT id, governorate_id, name_en, name_ar FROM district WHERE id = ?",
+                (rs, rowNum) -> new District(rs.getLong("id"), rs.getLong("governorate_id"),
+                        rs.getString("name_en"), rs.getString("name_ar")),
+                districtId);
+        seededMunicipality = jdbcTemplate.queryForObject(
+                "SELECT id, district_id, name_en, name_ar FROM municipality WHERE id = ?",
+                (rs, rowNum) -> new Municipality(rs.getLong("id"), rs.getLong("district_id"),
+                        rs.getString("name_en"), rs.getString("name_ar")),
+                municipalityId);
     }
 
     // Seeded with raw SQL rather than the DAO, so the read tests cannot be fooled by
@@ -118,8 +132,14 @@ class CrashDaoTest {
         assertEquals((short) 2024, crash.getRefYear());
         assertEquals(LocalDate.of(2024, 3, 14), crash.getCrashDate());
         assertEquals(LocalTime.of(13, 45), crash.getCrashTime());
-        assertEquals(districtId, crash.getDistrictId());
-        assertEquals(municipalityId, crash.getMunicipalityId());
+        assertEquals(districtId, crash.getDistrict().getId());
+        assertEquals(seededDistrict.getGovernorateId(), crash.getDistrict().getGovernorateId());
+        assertEquals(seededDistrict.getNameEn(), crash.getDistrict().getNameEn());
+        assertEquals(seededDistrict.getNameAr(), crash.getDistrict().getNameAr());
+        assertEquals(municipalityId, crash.getMunicipality().getId());
+        assertEquals(districtId, crash.getMunicipality().getDistrictId());
+        assertEquals(seededMunicipality.getNameEn(), crash.getMunicipality().getNameEn());
+        assertEquals(seededMunicipality.getNameAr(), crash.getMunicipality().getNameAr());
         assertDecimal("33.5", crash.getLatitude());
         assertDecimal("35.25", crash.getLongitude());
         assertEquals(CrashType.ANIMAL, crash.getCrashType());
@@ -146,7 +166,7 @@ class CrashDaoTest {
 
         Crash crash = crashDao.findById(id).orElseThrow();
 
-        assertNull(crash.getMunicipalityId());
+        assertNull(crash.getMunicipality());
         assertNull(crash.getCrashDate());
         assertNull(crash.getCrashTime());
         assertNull(crash.getLatitude());
@@ -196,7 +216,8 @@ class CrashDaoTest {
     void insertWritesEveryColumnAndReturnsTheGeneratedId() {
         Crash crash = new Crash(
                 null, "CD28-INS", (short) 2024, LocalDate.of(2024, 3, 14), LocalTime.of(13, 45),
-                districtId, municipalityId, new BigDecimal("33.5"), new BigDecimal("35.25"),
+                District.ref(districtId), Municipality.ref(municipalityId),
+                new BigDecimal("33.5"), new BigDecimal("35.25"),
                 CrashType.ANIMAL, ImpactType.REAR_TO_SIDE, Weather.FOG, Light.TWILIGHT,
                 CrashSeverity.SLIGHT, RoadwayType.RESTRICTED_ROAD, FunctionalClass.COLLECTOR,
                 (short) 80, ObstaclePresent.UNKNOWN, SurfaceCondition.FLOOD,
@@ -241,7 +262,7 @@ class CrashDaoTest {
     @Test
     void insertWritesNoControlRowsWhenThereAreNone() {
         Crash crash = new Crash(
-                null, "CD28-NOCTRL", (short) 2024, null, null, districtId, null, null, null,
+                null, "CD28-NOCTRL", (short) 2024, null, null, District.ref(districtId), null, null, null,
                 CrashType.ANIMAL, ImpactType.REAR_TO_SIDE, Weather.FOG, Light.TWILIGHT,
                 CrashSeverity.SLIGHT, RoadwayType.RESTRICTED_ROAD, null, (short) 80,
                 ObstaclePresent.UNKNOWN, SurfaceCondition.FLOOD, JunctionType.NOT_AT_GRADE,
@@ -263,7 +284,7 @@ class CrashDaoTest {
         seedFullCrash("CD28-DUPE", 2024);
 
         Crash duplicate = new Crash(
-                null, "CD28-DUPE", (short) 2024, null, null, districtId, null, null, null,
+                null, "CD28-DUPE", (short) 2024, null, null, District.ref(districtId), null, null, null,
                 CrashType.ANIMAL, ImpactType.REAR_TO_SIDE, Weather.FOG, Light.TWILIGHT,
                 CrashSeverity.SLIGHT, RoadwayType.RESTRICTED_ROAD, null, (short) 80,
                 ObstaclePresent.UNKNOWN, SurfaceCondition.FLOOD, JunctionType.NOT_AT_GRADE,
@@ -275,7 +296,7 @@ class CrashDaoTest {
     @Test
     void findAllIncludesAFreshlyInsertedCrash() {
         Long id = crashDao.insert(new Crash(
-                null, "CD28-ROUND", (short) 2024, null, null, districtId, null, null, null,
+                null, "CD28-ROUND", (short) 2024, null, null, District.ref(districtId), null, null, null,
                 CrashType.ANIMAL, ImpactType.REAR_TO_SIDE, Weather.FOG, Light.TWILIGHT,
                 CrashSeverity.SLIGHT, RoadwayType.RESTRICTED_ROAD, null, (short) 80,
                 ObstaclePresent.UNKNOWN, SurfaceCondition.FLOOD, JunctionType.NOT_AT_GRADE,

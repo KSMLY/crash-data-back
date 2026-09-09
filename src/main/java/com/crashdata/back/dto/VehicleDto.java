@@ -1,13 +1,17 @@
 package com.crashdata.back.dto;
 
+import com.crashdata.back.code.Manoeuvre;
+import com.crashdata.back.code.SpecialFunction;
+import com.crashdata.back.code.VehicleType;
+
 public record VehicleDto(
         Long id,
         Short vehicleNumber,
-        Short vehicleTypeCode,
+        VehicleType vehicleType,
         String make,
         String model,
         Short modelYear,
         Integer engineCc,
-        Short specialFunctionCode,
-        Short manoeuvreCode) {
+        SpecialFunction specialFunction,
+        Manoeuvre manoeuvre) {
 }

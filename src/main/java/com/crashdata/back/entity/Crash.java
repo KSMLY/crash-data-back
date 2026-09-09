@@ -18,8 +18,8 @@ public class Crash {
     private Short refYear;
     private LocalDate crashDate;
     private LocalTime crashTime;
-    private Long districtId;
-    private Long municipalityId;
+    private District district;
+    private Municipality municipality;
     private BigDecimal latitude;
     private BigDecimal longitude;
     private CrashType crashType;
@@ -38,7 +38,7 @@ public class Crash {
     private Set<TrafficControl> trafficControls;
 
     public Crash withSeverity(CrashSeverity severity) {
-        return new Crash(id, policeRef, refYear, crashDate, crashTime, districtId, municipalityId,
+        return new Crash(id, policeRef, refYear, crashDate, crashTime, district, municipality,
                 latitude, longitude, crashType, impactType, weather, light, severity,
                 roadwayType, functionalClass, speedLimitKmh, obstaclePresent, surfaceCondition,
                 junctionType, curve, grade, trafficControls);

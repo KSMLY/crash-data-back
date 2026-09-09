@@ -2,6 +2,8 @@ package com.crashdata.back.dao;
 
 import com.crashdata.back.code.*;
 import com.crashdata.back.entity.Crash;
+import com.crashdata.back.entity.District;
+import com.crashdata.back.entity.Municipality;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -20,14 +22,27 @@ public class CrashRowMapper implements RowMapper<Crash> {
     @Override
     public Crash mapRow(ResultSet rs, int rowNum) throws SQLException {
         long id = rs.getLong("id");
+        Long districtId = rs.getLong("district_id");
+        District district = new District(
+                districtId,
+                rs.getLong("governorate_id"),
+                rs.getString("district_name_en"),
+                rs.getString("district_name_ar"));
+
+        Long municipalityId = rs.getObject("municipality_id", Long.class);
+        Municipality municipality = municipalityId == null ? null : new Municipality(
+                municipalityId,
+                districtId,
+                rs.getString("municipality_name_en"),
+                rs.getString("municipality_name_ar"));
         return new Crash(
                 id,
                 rs.getString("police_ref"),
                 rs.getShort("ref_year"),
                 rs.getObject("crash_date", LocalDate.class),
                 rs.getObject("crash_time", LocalTime.class),
-                rs.getLong("district_id"),
-                rs.getObject("municipality_id", Long.class),
+                district,
+                municipality,
                 rs.getBigDecimal("latitude"),
                 rs.getBigDecimal("longitude"),
                 Codes.of(rs, "crash_type_code", CrashType.class),

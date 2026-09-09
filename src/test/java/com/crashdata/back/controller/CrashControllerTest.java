@@ -4,6 +4,8 @@ import com.crashdata.back.code.*;
 import com.crashdata.back.entity.AlcoholTest;
 import com.crashdata.back.entity.Crash;
 import com.crashdata.back.entity.CrashDetail;
+import com.crashdata.back.entity.District;
+import com.crashdata.back.entity.Municipality;
 import com.crashdata.back.entity.Person;
 import com.crashdata.back.entity.PersonSubmission;
 import com.crashdata.back.entity.Vehicle;
@@ -50,8 +52,8 @@ class CrashControllerTest {
     @MockitoBean
     CrashService crashService;
 
-    // Every field gets a distinct value: the three same-typed pairs (refYear/speedLimitKmh,
-    // districtId/municipalityId, latitude/longitude) swap silently in a 23-arg constructor
+    // Every field gets a distinct value: the same-typed pairs (refYear/speedLimitKmh,
+    // latitude/longitude, and each nested id/name pair) swap silently in a 23-arg constructor
     private static Crash crash() {
         return new Crash(
                 7L,
@@ -59,8 +61,8 @@ class CrashControllerTest {
                 (short) 2024,
                 LocalDate.of(2024, 3, 14),
                 LocalTime.of(13, 45),
-                11L,
-                22L,
+                new District(11L, 9L, "Baabda", "بعبدا"),
+                new Municipality(22L, 11L, "Hadath", "الحدث"),
                 new BigDecimal("33.5"),
                 new BigDecimal("35.25"),
                 CrashType.ANIMAL,
@@ -110,24 +112,24 @@ class CrashControllerTest {
             "refYear": 2024,
             "crashDate": "2024-03-14",
             "crashTime": "13:45:00",
-            "districtId": 11,
-            "municipalityId": 22,
+            "district": {"id": 11, "governorateId": 9, "nameEn": "Baabda", "nameAr": "بعبدا"},
+            "municipality": {"id": 22, "districtId": 11, "nameEn": "Hadath", "nameAr": "الحدث"},
             "latitude": 33.5,
             "longitude": 35.25,
-            "crashTypeCode": 5,
-            "impactTypeCode": 10,
-            "weatherCode": 4,
-            "lightCode": 2,
-            "severityCode": 3,
-            "roadwayTypeCode": 6,
-            "functionalClassCode": 3,
+            "crashType": "ANIMAL",
+            "impactType": "REAR_TO_SIDE",
+            "weather": "FOG",
+            "light": "TWILIGHT",
+            "severity": "SLIGHT",
+            "roadwayType": "RESTRICTED_ROAD",
+            "functionalClass": "COLLECTOR",
             "speedLimitKmh": 80,
-            "obstaclePresentCode": 9,
-            "surfaceConditionCode": 5,
-            "junctionTypeCode": 6,
-            "curveCode": 2,
-            "gradeCode": 2,
-            "trafficControlCodes": [3, 5, 8]
+            "obstaclePresent": "UNKNOWN",
+            "surfaceCondition": "FLOOD",
+            "junctionType": "NOT_AT_GRADE",
+            "curve": "OPEN",
+            "grade": "NO",
+            "trafficControls": ["GIVE_WAY", "SIGNAL_WORKING", "OTHER"]
             """;
 
     private static final String CRASH_JSON = "{" + CRASH_FIELDS + "}";
@@ -138,13 +140,13 @@ class CrashControllerTest {
               {
                 "id": 101,
                 "vehicleNumber": 1,
-                "vehicleTypeCode": 5,
+                "vehicleType": "BUS",
                 "make": "Toyota",
                 "model": "Corolla",
                 "modelYear": 2019,
                 "engineCc": 1600,
-                "specialFunctionCode": 2,
-                "manoeuvreCode": 12
+                "specialFunction": "TAXI",
+                "manoeuvre": "OVERTAKING"
               }
             ],
             "persons": [
@@ -154,30 +156,30 @@ class CrashControllerTest {
                 "occupantVehicleId": 101,
                 "struckByVehicleId": 102,
                 "dateOfBirth": "1990-06-05",
-                "sexCode": 2,
-                "roadUserTypeCode": 2,
-                "seatRowCode": 2,
-                "seatPositionCode": 3,
-                "injurySeverityCode": 3,
-                "restraintCode": 10,
-                "helmetCode": 3,
-                "pedManoeuvreCode": 1,
-                "alcoholSuspectedCode": 2,
-                "drugUseCode": 3,
-                "licenceStatusCode": 1,
+                "sex": "FEMALE",
+                "roadUserType": "PASSENGER",
+                "seatRow": "REAR",
+                "seatPosition": "RIGHT",
+                "injurySeverity": "SLIGHT",
+                "restraint": "NO_RESTRAINTS_USED",
+                "helmet": "NOT_APPLICABLE",
+                "pedManoeuvre": "CROSSING",
+                "alcoholSuspected": "YES",
+                "drugUse": "EVIDENCE",
+                "licenceStatus": "ISSUED",
                 "licenceIssueDate": "2010-01-20",
                 "alcoholTest": {
-                  "testStatusCode": 3,
-                  "testTypeCode": 2,
-                  "resultStatusCode": 1,
+                  "testStatus": "GIVEN",
+                  "testType": "BREATH",
+                  "resultStatus": "AVAILABLE",
                   "resultValue": 0.85
                 }
               }
             ]
             """ + "}";
 
-    // Mirrors crash()/vehicle()/person(), minus the fields the server owns (id, severityCode).
-    // trafficControlCodes are deliberately unsorted, so the response proves the controller sorts.
+    // Mirrors crash()/vehicle()/person(), minus the fields the server owns (id, severity).
+    // trafficControls are deliberately unsorted, so the response proves the controller sorts.
     private static final String REQUEST_JSON = """
             {
               "policeRef": "PR-100",
@@ -188,29 +190,29 @@ class CrashControllerTest {
               "municipalityId": 22,
               "latitude": 33.5,
               "longitude": 35.25,
-              "crashTypeCode": 5,
-              "impactTypeCode": 10,
-              "weatherCode": 4,
-              "lightCode": 2,
-              "roadwayTypeCode": 6,
-              "functionalClassCode": 3,
+              "crashType": "ANIMAL",
+              "impactType": "REAR_TO_SIDE",
+              "weather": "FOG",
+              "light": "TWILIGHT",
+              "roadwayType": "RESTRICTED_ROAD",
+              "functionalClass": "COLLECTOR",
               "speedLimitKmh": 80,
-              "obstaclePresentCode": 9,
-              "surfaceConditionCode": 5,
-              "junctionTypeCode": 6,
-              "curveCode": 2,
-              "gradeCode": 2,
-              "trafficControlCodes": [8, 3, 5],
+              "obstaclePresent": "UNKNOWN",
+              "surfaceCondition": "FLOOD",
+              "junctionType": "NOT_AT_GRADE",
+              "curve": "OPEN",
+              "grade": "NO",
+              "trafficControls": ["OTHER", "GIVE_WAY", "SIGNAL_WORKING"],
               "vehicles": [
                 {
                   "vehicleNumber": 1,
-                  "vehicleTypeCode": 5,
+                  "vehicleType": "BUS",
                   "make": "Toyota",
                   "model": "Corolla",
                   "modelYear": 2019,
                   "engineCc": 1600,
-                  "specialFunctionCode": 2,
-                  "manoeuvreCode": 12
+                  "specialFunction": "TAXI",
+                  "manoeuvre": "OVERTAKING"
                 }
               ],
               "persons": [
@@ -219,22 +221,22 @@ class CrashControllerTest {
                   "occupantVehicleNumber": 1,
                   "struckByVehicleNumber": 2,
                   "dateOfBirth": "1990-06-05",
-                  "sexCode": 2,
-                  "roadUserTypeCode": 2,
-                  "seatRowCode": 2,
-                  "seatPositionCode": 3,
-                  "injurySeverityCode": 3,
-                  "restraintCode": 10,
-                  "helmetCode": 3,
-                  "pedManoeuvreCode": 1,
-                  "alcoholSuspectedCode": 2,
-                  "drugUseCode": 3,
-                  "licenceStatusCode": 1,
+                  "sex": "FEMALE",
+                  "roadUserType": "PASSENGER",
+                  "seatRow": "REAR",
+                  "seatPosition": "RIGHT",
+                  "injurySeverity": "SLIGHT",
+                  "restraint": "NO_RESTRAINTS_USED",
+                  "helmet": "NOT_APPLICABLE",
+                  "pedManoeuvre": "CROSSING",
+                  "alcoholSuspected": "YES",
+                  "drugUse": "EVIDENCE",
+                  "licenceStatus": "ISSUED",
                   "licenceIssueDate": "2010-01-20",
                   "alcoholTest": {
-                    "testStatusCode": 3,
-                    "testTypeCode": 2,
-                    "resultStatusCode": 1,
+                    "testStatus": "GIVEN",
+                    "testType": "BREATH",
+                    "resultStatus": "AVAILABLE",
                     "resultValue": 0.85
                   }
                 }
@@ -248,29 +250,29 @@ class CrashControllerTest {
               "policeRef": "PR-100",
               "refYear": 2024,
               "districtId": 11,
-              "crashTypeCode": 5,
-              "impactTypeCode": 10,
-              "weatherCode": 4,
-              "lightCode": 2,
-              "roadwayTypeCode": 6,
+              "crashType": "ANIMAL",
+              "impactType": "REAR_TO_SIDE",
+              "weather": "FOG",
+              "light": "TWILIGHT",
+              "roadwayType": "RESTRICTED_ROAD",
               "speedLimitKmh": 80,
-              "obstaclePresentCode": 9,
-              "surfaceConditionCode": 5,
-              "junctionTypeCode": 6,
-              "curveCode": 2,
-              "gradeCode": 2,
+              "obstaclePresent": "UNKNOWN",
+              "surfaceCondition": "FLOOD",
+              "junctionType": "NOT_AT_GRADE",
+              "curve": "OPEN",
+              "grade": "NO",
               "persons": [
                 {
                   "personNumber": 1,
-                  "sexCode": 2,
-                  "roadUserTypeCode": 2,
-                  "seatRowCode": 2,
-                  "seatPositionCode": 3,
-                  "injurySeverityCode": 3,
-                  "restraintCode": 10,
-                  "helmetCode": 3,
-                  "alcoholSuspectedCode": 2,
-                  "drugUseCode": 3
+                  "sex": "FEMALE",
+                  "roadUserType": "PASSENGER",
+                  "seatRow": "REAR",
+                  "seatPosition": "RIGHT",
+                  "injurySeverity": "SLIGHT",
+                  "restraint": "NO_RESTRAINTS_USED",
+                  "helmet": "NOT_APPLICABLE",
+                  "alcoholSuspected": "YES",
+                  "drugUse": "EVIDENCE"
                 }
               ]
             }
@@ -341,8 +343,8 @@ class CrashControllerTest {
         assertEquals("PR-100", sent.getPoliceRef());
         assertEquals((short) 2024, sent.getRefYear());
         assertEquals((short) 80, sent.getSpeedLimitKmh());
-        assertEquals(11L, sent.getDistrictId());
-        assertEquals(22L, sent.getMunicipalityId());
+        assertEquals(11L, sent.getDistrict().getId());
+        assertEquals(22L, sent.getMunicipality().getId());
         assertEquals(new BigDecimal("33.5"), sent.getLatitude());
         assertEquals(new BigDecimal("35.25"), sent.getLongitude());
         assertEquals(LocalDate.of(2024, 3, 14), sent.getCrashDate());
@@ -407,7 +409,7 @@ class CrashControllerTest {
         assertEquals(Set.of(), crashArg.getValue().getTrafficControls());
         assertNull(crashArg.getValue().getFunctionalClass());
         assertNull(crashArg.getValue().getCrashDate());
-        assertNull(crashArg.getValue().getMunicipalityId());
+        assertNull(crashArg.getValue().getMunicipality());
         assertNull(personsArg.getValue().getFirst().alcoholTest());
         assertNull(personsArg.getValue().getFirst().person().getPedManoeuvre());
     }
@@ -430,21 +432,22 @@ class CrashControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(REQUEST_JSON
                                 .replace("\"vehicleNumber\": 1,", "")
-                                .replace("\"sexCode\": 2,", "")))
+                                .replace("\"sex\": \"FEMALE\",", "")))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(
-                        "persons[0].sexCode must not be null, vehicles[0].vehicleNumber must not be null"));
+                        "persons[0].sex must not be null, vehicles[0].vehicleNumber must not be null"));
 
         verify(crashService, never()).createCrash(any(), any(), any());
     }
 
     @Test
-    void createCrashRejectsUnknownCode() throws Exception {
+    void createCrashRejectsUnknownEnumValue() throws Exception {
         mockMvc.perform(post("/crashes")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(REQUEST_JSON.replace("\"weatherCode\": 4", "\"weatherCode\": 99")))
+                        .content(REQUEST_JSON.replace("\"weather\": \"FOG\"", "\"weather\": \"GOAT\"")))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Unknown Weather code: 99"));
+                .andExpect(content().string(
+                        "weather must be one of: CLEAR, RAIN, SNOW, FOG, SLEET, SEVERE_WINDS, OTHER, UNKNOWN"));
 
         verify(crashService, never()).createCrash(any(), any(), any());
     }

@@ -1,5 +1,7 @@
 package com.crashdata.back.dto;
 
+import com.crashdata.back.code.*;
+
 import java.time.LocalDate;
 
 public record PersonDto(
@@ -8,17 +10,17 @@ public record PersonDto(
         Long occupantVehicleId,
         Long struckByVehicleId,
         LocalDate dateOfBirth,
-        Short sexCode,
-        Short roadUserTypeCode,
-        Short seatRowCode,
-        Short seatPositionCode,
-        Short injurySeverityCode,
-        Short restraintCode,
-        Short helmetCode,
-        Short pedManoeuvreCode,
-        Short alcoholSuspectedCode,
-        Short drugUseCode,
-        Short licenceStatusCode,
+        Sex sex,
+        RoadUserType roadUserType,
+        SeatRow seatRow,
+        SeatPosition seatPosition,
+        InjurySeverity injurySeverity,
+        Restraint restraint,
+        Helmet helmet,
+        PedManoeuvre pedManoeuvre,
+        AlcoholSuspected alcoholSuspected,
+        DrugUse drugUse,
+        LicenceStatus licenceStatus,
         LocalDate licenceIssueDate,
         AlcoholTestDto alcoholTest) {
 }
