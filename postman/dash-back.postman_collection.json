@@ -1,0 +1,165 @@
+{
+  "info": {
+    "name": "dash-back",
+    "description": "Crash data API. Set baseUrl in the environment. POST /crashes stores the new id in the crashId collection variable, which GET /crashes/{id} then uses.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "crashId", "value": "" },
+    { "key": "districtId", "value": "1" },
+    { "key": "municipalityId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Crashes",
+      "item": [
+        {
+          "name": "GET /crashes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/crashes", "host": ["{{baseUrl}}"], "path": ["crashes"] }
+          }
+        },
+        {
+          "name": "GET /crashes/{id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/crashes/{{crashId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["crashes", "{{crashId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST /crashes (full)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 created', () => pm.response.to.have.status(201));",
+                  "const id = pm.response.json().id;",
+                  "pm.collectionVariables.set('crashId', id);",
+                  "console.log('crashId =', id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"policeRef\": \"PR-{{$timestamp}}\",\n  \"refYear\": 2026,\n  \"crashDate\": \"2026-09-10\",\n  \"crashTime\": \"14:30:00\",\n  \"districtId\": {{districtId}},\n  \"municipalityId\": {{municipalityId}},\n  \"latitude\": 33.8938,\n  \"longitude\": 35.5018,\n  \"crashType\": \"MULTIPLE_VEHICLES\",\n  \"impactType\": \"REAR_END\",\n  \"weather\": \"CLEAR\",\n  \"light\": \"DAYLIGHT\",\n  \"roadwayType\": \"URBAN_TWO_WAY\",\n  \"functionalClass\": \"COLLECTOR\",\n  \"speedLimitKmh\": 50,\n  \"obstaclePresent\": \"NO\",\n  \"surfaceCondition\": \"DRY\",\n  \"junctionType\": \"NOT_AT_JUNCTION\",\n  \"curve\": \"NONE\",\n  \"grade\": \"NO\",\n  \"trafficControls\": [\"SIGNAL_WORKING\", \"STOP_SIGN\"],\n  \"vehicles\": [\n    {\n      \"vehicleNumber\": 1,\n      \"vehicleType\": \"PASSENGER_CAR\",\n      \"make\": \"Toyota\",\n      \"model\": \"Corolla\",\n      \"modelYear\": 2018,\n      \"engineCc\": 1600,\n      \"specialFunction\": \"NONE\",\n      \"manoeuvre\": \"STRAIGHT_FORWARD\"\n    },\n    {\n      \"vehicleNumber\": 2,\n      \"vehicleType\": \"LIGHT_GOODS_VEHICLE\",\n      \"make\": \"Ford\",\n      \"model\": \"Transit\",\n      \"modelYear\": 2020,\n      \"engineCc\": 2200,\n      \"specialFunction\": \"NONE\",\n      \"manoeuvre\": \"SLOWING_OR_STOPPING\"\n    }\n  ],\n  \"persons\": [\n    {\n      \"personNumber\": 1,\n      \"occupantVehicleNumber\": 1,\n      \"dateOfBirth\": \"1990-04-12\",\n      \"sex\": \"MALE\",\n      \"roadUserType\": \"DRIVER\",\n      \"seatRow\": \"FRONT\",\n      \"seatPosition\": \"LEFT\",\n      \"injurySeverity\": \"SLIGHT\",\n      \"restraint\": \"SEATBELT_AVAILABLE_USED\",\n      \"helmet\": \"NOT_APPLICABLE\",\n      \"alcoholSuspected\": \"YES\",\n      \"drugUse\": \"NO_SUSPICION\",\n      \"licenceStatus\": \"ISSUED\",\n      \"licenceIssueDate\": \"2010-06-01\",\n      \"alcoholTest\": {\n        \"testStatus\": \"GIVEN\",\n        \"testType\": \"BREATH\",\n        \"resultStatus\": \"AVAILABLE\",\n        \"resultValue\": 0.42\n      }\n    },\n    {\n      \"personNumber\": 2,\n      \"occupantVehicleNumber\": 2,\n      \"dateOfBirth\": \"1985-11-03\",\n      \"sex\": \"FEMALE\",\n      \"roadUserType\": \"DRIVER\",\n      \"seatRow\": \"FRONT\",\n      \"seatPosition\": \"LEFT\",\n      \"injurySeverity\": \"NO_INJURY\",\n      \"restraint\": \"SEATBELT_AVAILABLE_USED\",\n      \"helmet\": \"NOT_APPLICABLE\",\n      \"alcoholSuspected\": \"NO\",\n      \"drugUse\": \"NO_SUSPICION\",\n      \"licenceStatus\": \"ISSUED\",\n      \"licenceIssueDate\": \"2006-02-20\"\n    },\n    {\n      \"personNumber\": 3,\n      \"struckByVehicleNumber\": 1,\n      \"dateOfBirth\": \"2001-01-30\",\n      \"sex\": \"MALE\",\n      \"roadUserType\": \"PEDESTRIAN\",\n      \"seatRow\": \"NOT_APPLICABLE\",\n      \"seatPosition\": \"NOT_APPLICABLE\",\n      \"injurySeverity\": \"SERIOUS\",\n      \"restraint\": \"NOT_APPLICABLE\",\n      \"helmet\": \"NOT_APPLICABLE\",\n      \"pedManoeuvre\": \"CROSSING\",\n      \"alcoholSuspected\": \"UNKNOWN\",\n      \"drugUse\": \"UNKNOWN\"\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/crashes", "host": ["{{baseUrl}}"], "path": ["crashes"] }
+          }
+        },
+        {
+          "name": "POST /crashes (minimal)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('crashId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"policeRef\": \"PR-MIN-{{$timestamp}}\",\n  \"refYear\": 2026,\n  \"districtId\": {{districtId}},\n  \"crashType\": \"SINGLE_VEHICLE\",\n  \"impactType\": \"NO_IMPACT\",\n  \"weather\": \"CLEAR\",\n  \"light\": \"DAYLIGHT\",\n  \"roadwayType\": \"URBAN_TWO_WAY\",\n  \"speedLimitKmh\": 50,\n  \"obstaclePresent\": \"NO\",\n  \"surfaceCondition\": \"DRY\",\n  \"junctionType\": \"NOT_AT_JUNCTION\",\n  \"curve\": \"NONE\",\n  \"grade\": \"NO\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/crashes", "host": ["{{baseUrl}}"], "path": ["crashes"] }
+          }
+        },
+        {
+          "name": "POST /crashes (invalid, expect 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('400 bad request', () => pm.response.to.have.status(400));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"refYear\": 2026,\n  \"districtId\": {{districtId}},\n  \"crashType\": \"SINGLE_VEHICLE\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/crashes", "host": ["{{baseUrl}}"], "path": ["crashes"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Locations",
+      "item": [
+        {
+          "name": "GET /governorates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/governorates", "host": ["{{baseUrl}}"], "path": ["governorates"] }
+          }
+        },
+        {
+          "name": "GET /districts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/districts?governorateId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["districts"],
+              "query": [{ "key": "governorateId", "value": "1", "description": "optional filter" }]
+            }
+          }
+        },
+        {
+          "name": "GET /municipalities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/municipalities?districtId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["municipalities"],
+              "query": [{ "key": "districtId", "value": "1", "description": "optional filter" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Codes",
+      "item": [
+        {
+          "name": "GET /codes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/codes", "host": ["{{baseUrl}}"], "path": ["codes"] }
+          }
+        }
+      ]
+    }
+  ]
+}
