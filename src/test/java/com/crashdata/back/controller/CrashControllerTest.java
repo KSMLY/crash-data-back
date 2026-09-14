@@ -10,6 +10,8 @@ import com.crashdata.back.entity.Person;
 import com.crashdata.back.entity.PersonSubmission;
 import com.crashdata.back.entity.Vehicle;
 import com.crashdata.back.service.CrashService;
+import com.crashdata.back.service.InvalidCrashException;
+import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,8 @@ import java.util.stream.Collectors;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -312,6 +316,17 @@ class CrashControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    // NumberFormatException extends IllegalArgumentException, so before CD-32 this leaked
+    // the raw 'For input string: "abc"' message as the response body
+    @Test
+    void getCrashRejectsNonNumericId() throws Exception {
+        mockMvc.perform(get("/crashes/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("id must be a number."));
+
+        verify(crashService, never()).getCrashDetail(any());
+    }
+
     @Test
     void createCrashReturnsCreatedWithLocationAndBody() throws Exception {
         when(crashService.createCrash(any(), any(), any())).thenReturn(detail());
@@ -450,6 +465,32 @@ class CrashControllerTest {
                         "weather must be one of: CLEAR, RAIN, SNOW, FOG, SLEET, SEVERE_WINDS, OTHER, UNKNOWN"));
 
         verify(crashService, never()).createCrash(any(), any(), any());
+    }
+
+    @Test
+    void createCrashReturnsBadRequestWhenServiceRejects() throws Exception {
+        when(crashService.createCrash(any(), any(), any()))
+                .thenThrow(new InvalidCrashException("A crash must have at least one person."));
+
+        mockMvc.perform(post("/crashes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(REQUEST_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("A crash must have at least one person."));
+    }
+
+    // A plain IllegalArgumentException is a bug below the controller, not a client error;
+    // with no handler for it MockMvc rethrows it instead of producing a 400
+    @Test
+    void createCrashDoesNotReportUnexpectedIllegalArgumentAsClientError() {
+        when(crashService.createCrash(any(), any(), any()))
+                .thenThrow(new IllegalArgumentException("internal detail"));
+
+        ServletException thrown = assertThrows(ServletException.class, () -> mockMvc.perform(post("/crashes")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(REQUEST_JSON)));
+
+        assertInstanceOf(IllegalArgumentException.class, thrown.getCause());
     }
 
     @Test

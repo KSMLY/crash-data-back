@@ -1,5 +1,6 @@
 package com.crashdata.back.controller;
 
+import com.crashdata.back.service.InvalidCrashException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -7,6 +8,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.exc.InvalidFormatException;
@@ -17,9 +19,16 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleBadCode(IllegalArgumentException e) {
+    @ExceptionHandler(InvalidCrashException.class)
+    public ResponseEntity<String> handleInvalidCrash(InvalidCrashException e) {
         return ResponseEntity.badRequest().body(e.getMessage());
+    }
+
+    // Only the parameter name goes back to the client; the cause is a NumberFormatException
+    // whose message would otherwise leak the raw JDK text
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<String> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        return ResponseEntity.badRequest().body(e.getName() + " must be a number.");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
