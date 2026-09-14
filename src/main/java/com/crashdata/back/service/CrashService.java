@@ -60,7 +60,7 @@ public class CrashService {
         Set<Short> numbers = new HashSet<>();
         for (Vehicle vehicle : vehicles) {
             if (!numbers.add(vehicle.getVehicleNumber())) {
-                throw new IllegalArgumentException(
+                throw new InvalidCrashException(
                         "Duplicate vehicleNumber in request: " + vehicle.getVehicleNumber());
             }
         }
@@ -92,7 +92,7 @@ public class CrashService {
         if (vehicleNumber == null) return null;
         Long id = vehicleIdsByNumber.get(vehicleNumber);
         if (id == null) {
-            throw new IllegalArgumentException("No vehicle with vehicleNumber " + vehicleNumber);
+            throw new InvalidCrashException("No vehicle with vehicleNumber " + vehicleNumber);
         }
         return id;
     }
@@ -103,14 +103,14 @@ public class CrashService {
      */
     private static CrashSeverity deriveSeverity(List<PersonSubmission> persons) {
         if (persons.isEmpty()) {
-            throw new IllegalArgumentException("A crash must have at least one person.");
+            throw new InvalidCrashException("A crash must have at least one person.");
         }
         return persons.stream()
                 .map(submission -> submission.person().getInjurySeverity())
                 .map(CrashService::toCrashSeverity)
                 .filter(severity -> severity != null)
                 .min(Comparator.comparing(CrashSeverity::getCode))
-                .orElseThrow(() -> new IllegalArgumentException(unknownSeverityMessage(persons)));
+                .orElseThrow(() -> new InvalidCrashException(unknownSeverityMessage(persons)));
     }
 
     private static CrashSeverity toCrashSeverity(InjurySeverity injury) {
