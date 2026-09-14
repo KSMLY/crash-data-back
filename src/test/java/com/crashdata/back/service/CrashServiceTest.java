@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,6 +36,9 @@ class CrashServiceTest {
     @Mock
     private AlcoholTestDao alcoholTestDao;
 
+    @Mock
+    private LocationService locationService;
+
     @InjectMocks
     private CrashService service;
 
@@ -42,6 +46,16 @@ class CrashServiceTest {
     private static Crash crash() {
         return new Crash(null, null, null, null, null, null, null, null, null, null, null, null,
                 null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    private static Crash crashIn(Long districtId, Long municipalityId) {
+        return new Crash(null, null, null, null, null, District.ref(districtId),
+                Municipality.ref(municipalityId), null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null);
+    }
+
+    private static Municipality municipality(Long id, Long districtId) {
+        return new Municipality(id, districtId, null, null);
     }
 
     private static Person person(Short personNumber, InjurySeverity injury) {
@@ -128,6 +142,43 @@ class CrashServiceTest {
     }
 
     @Test
+    void rejectsMunicipalityOutsideTheDistrict() {
+        when(locationService.getMunicipalities(3L)).thenReturn(List.of(municipality(11L, 3L)));
+
+        InvalidCrashException thrown = assertThrows(InvalidCrashException.class, () -> service.createCrash(
+                crashIn(3L, 12L), List.of(), List.of(submission(person((short) 1, InjurySeverity.SLIGHT)))));
+
+        assertTrue(thrown.getMessage().contains("Municipality 12 is not in district 3"), thrown.getMessage());
+        verify(crashDao, never()).insert(any());
+    }
+
+    @Test
+    void acceptsMunicipalityInsideTheDistrict() {
+        when(locationService.getMunicipalities(3L)).thenReturn(List.of(municipality(12L, 3L)));
+        when(crashDao.insert(any())).thenReturn(7L);
+        when(crashDao.findById(7L)).thenReturn(Optional.of(crash()));
+
+        service.createCrash(crashIn(3L, 12L), List.of(),
+                List.of(submission(person((short) 1, InjurySeverity.SLIGHT))));
+
+        verify(crashDao).insert(any());
+    }
+
+    @Test
+    void rejectsPersonWhoIsBothOccupantAndStruckBy() {
+        InvalidCrashException thrown = assertThrows(InvalidCrashException.class, () -> service.createCrash(
+                crash(),
+                List.of(vehicle((short) 1), vehicle((short) 2)),
+                List.of(
+                        submission(person((short) 1, InjurySeverity.SLIGHT)),
+                        new PersonSubmission(person((short) 2, InjurySeverity.SLIGHT), (short) 1, (short) 2, null))));
+
+        assertTrue(thrown.getMessage().contains("persons[1]"), thrown.getMessage());
+        verify(crashDao, never()).insert(any());
+        verify(vehicleDao, never()).insert(any());
+    }
+
+    @Test
     void derivesSeverityFromTheWorstInjury() {
         when(crashDao.insert(any())).thenReturn(7L);
         when(crashDao.findById(7L)).thenReturn(Optional.of(crash()));
@@ -162,21 +213,27 @@ class CrashServiceTest {
         when(crashDao.findById(7L)).thenReturn(Optional.of(crash()));
         when(vehicleDao.insert(any())).thenReturn(10L, 20L);
 
+        // One occupant and one pedestrian: a person cannot hold both roles (CD-33)
         service.createCrash(crash(),
                 List.of(vehicle((short) 1), vehicle((short) 2)),
-                List.of(new PersonSubmission(
-                        person((short) 1, InjurySeverity.SLIGHT), (short) 1, (short) 2, null)));
+                List.of(
+                        new PersonSubmission(person((short) 1, InjurySeverity.SLIGHT), (short) 1, null, null),
+                        new PersonSubmission(person((short) 2, InjurySeverity.SLIGHT), null, (short) 2, null)));
 
         ArgumentCaptor<Vehicle> vehicles = ArgumentCaptor.forClass(Vehicle.class);
         verify(vehicleDao, times(2)).insert(vehicles.capture());
         assertEquals(List.of(7L, 7L),
                 vehicles.getAllValues().stream().map(Vehicle::getCrashId).toList());
 
-        ArgumentCaptor<Person> person = ArgumentCaptor.forClass(Person.class);
-        verify(personDao).insert(person.capture());
-        assertEquals(7L, person.getValue().getCrashId());
-        assertEquals(10L, person.getValue().getOccupantVehicleId());
-        assertEquals(20L, person.getValue().getStruckByVehicleId());
+        ArgumentCaptor<Person> persons = ArgumentCaptor.forClass(Person.class);
+        verify(personDao, times(2)).insert(persons.capture());
+        Person occupant = persons.getAllValues().get(0);
+        Person pedestrian = persons.getAllValues().get(1);
+        assertEquals(7L, occupant.getCrashId());
+        assertEquals(10L, occupant.getOccupantVehicleId());
+        assertNull(occupant.getStruckByVehicleId());
+        assertNull(pedestrian.getOccupantVehicleId());
+        assertEquals(20L, pedestrian.getStruckByVehicleId());
     }
 
     @Test

@@ -9,6 +9,7 @@ import com.crashdata.back.dao.VehicleDao;
 import com.crashdata.back.entity.AlcoholTest;
 import com.crashdata.back.entity.Crash;
 import com.crashdata.back.entity.CrashDetail;
+import com.crashdata.back.entity.Municipality;
 import com.crashdata.back.entity.Person;
 import com.crashdata.back.entity.PersonSubmission;
 import com.crashdata.back.entity.Vehicle;
@@ -32,6 +33,7 @@ public class CrashService {
     private final VehicleDao vehicleDao;
     private final PersonDao personDao;
     private final AlcoholTestDao alcoholTestDao;
+    private final LocationService locationService;
 
     public List<Crash> getCrashes() {
         return crashDao.findAll();
@@ -48,12 +50,41 @@ public class CrashService {
 
     @Transactional
     public CrashDetail createCrash(Crash crash, List<Vehicle> vehicles, List<PersonSubmission> persons) {
+        requireMunicipalityInDistrict(crash);
+        requireOneVehicleRolePerPerson(persons);
+
         Long crashId = crashDao.insert(crash.withSeverity(deriveSeverity(persons)));
 
         Map<Short, Long> vehicleIdsByNumber = insertVehicles(crashId, vehicles);
         insertPersons(crashId, persons, vehicleIdsByNumber);
 
         return getCrashDetail(crashId).orElseThrow();
+    }
+
+    // The request only carries the municipality id, so the district it belongs to has to be
+    // looked up; going through the cached list also turns an unknown id into a 400 rather
+    // than a foreign-key failure
+    private void requireMunicipalityInDistrict(Crash crash) {
+        if (crash.getMunicipality() == null) return;
+        Long municipalityId = crash.getMunicipality().getId();
+        Long districtId = crash.getDistrict().getId();
+        boolean inDistrict = locationService.getMunicipalities(districtId).stream()
+                .map(Municipality::getId)
+                .anyMatch(municipalityId::equals);
+        if (!inDistrict) {
+            throw new InvalidCrashException(
+                    "Municipality " + municipalityId + " is not in district " + districtId + ".");
+        }
+    }
+
+    private static void requireOneVehicleRolePerPerson(List<PersonSubmission> persons) {
+        for (int i = 0; i < persons.size(); i++) {
+            PersonSubmission submission = persons.get(i);
+            if (submission.occupantVehicleNumber() != null && submission.struckByVehicleNumber() != null) {
+                throw new InvalidCrashException("persons[" + i
+                        + "] cannot have both occupantVehicleNumber and struckByVehicleNumber.");
+            }
+        }
     }
 
     private Map<Short, Long> insertVehicles(Long crashId, List<Vehicle> vehicles) {
