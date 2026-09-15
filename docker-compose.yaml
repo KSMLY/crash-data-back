@@ -30,7 +30,7 @@ services:
     build: ../crash-data-front
     container_name: dash-frontend
     ports:
-      - "80:80"
+      - "80:8080"
     depends_on:
       - backend
 
