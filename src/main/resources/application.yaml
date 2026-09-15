@@ -2,7 +2,7 @@ spring:
   application:
     name: dash-back
   datasource:
-    url: jdbc:sqlserver://localhost:1433;databaseName=crashdb;trustServerCertificate=true
+    url: jdbc:sqlserver://${DB_HOST:localhost}:1433;databaseName=crashdb;trustServerCertificate=true
     username: sa
     password: ${MSSQL_SA_PASSWORD}
 
