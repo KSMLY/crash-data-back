@@ -43,4 +43,11 @@ public class Crash {
                 roadwayType, functionalClass, speedLimitKmh, obstaclePresent, surfaceCondition,
                 junctionType, curve, grade, trafficControls);
     }
+
+    public Crash withTrafficControls(Set<TrafficControl> trafficControls) {
+        return new Crash(id, policeRef, refYear, crashDate, crashTime, district, municipality,
+                latitude, longitude, crashType, impactType, weather, light, severity,
+                roadwayType, functionalClass, speedLimitKmh, obstaclePresent, surfaceCondition,
+                junctionType, curve, grade, trafficControls);
+    }
 }

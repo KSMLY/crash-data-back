@@ -76,6 +76,19 @@ class CrashServiceTest {
     }
 
     @Test
+    void searchCrashesPairsThePageWithTheTotalCount() {
+        CrashSearch search = new CrashSearch(null, null, null, null, null, null, 0, 20, "crashDate", true);
+        List<Crash> rows = List.of(crash());
+        when(crashDao.search(search)).thenReturn(rows);
+        when(crashDao.count(search)).thenReturn(57L);
+
+        Page<Crash> page = service.searchCrashes(search);
+
+        assertEquals(rows, page.content());
+        assertEquals(57L, page.totalElements());
+    }
+
+    @Test
     void rejectsCrashWithNoPersons() {
         InvalidCrashException thrown = assertThrows(InvalidCrashException.class, ()
                 -> service.createCrash(crash(), List.of(), List.of()));

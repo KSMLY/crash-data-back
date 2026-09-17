@@ -8,6 +8,8 @@ import com.crashdata.back.dto.DistrictDto;
 import com.crashdata.back.dto.MunicipalityDto;
 import com.crashdata.back.dto.AlcoholTestRequest;
 import com.crashdata.back.dto.CrashRequest;
+import com.crashdata.back.dto.CrashSearchRequest;
+import com.crashdata.back.dto.PageDto;
 import com.crashdata.back.dto.PersonRequest;
 import com.crashdata.back.dto.VehicleRequest;
 import com.crashdata.back.dto.PersonDto;
@@ -15,8 +17,10 @@ import com.crashdata.back.dto.VehicleDto;
 import com.crashdata.back.entity.AlcoholTest;
 import com.crashdata.back.entity.Crash;
 import com.crashdata.back.entity.CrashDetail;
+import com.crashdata.back.entity.CrashSearch;
 import com.crashdata.back.entity.District;
 import com.crashdata.back.entity.Municipality;
+import com.crashdata.back.entity.Page;
 import com.crashdata.back.entity.PersonSubmission;
 import com.crashdata.back.entity.Person;
 import com.crashdata.back.entity.Vehicle;
@@ -40,10 +44,14 @@ public class CrashController {
     private final CrashService crashService;
 
     @GetMapping("/crashes")
-    public List<CrashDto> getCrashes() {
-        return crashService.getCrashes().stream()
-                .map(CrashController::toDto)
-                .toList();
+    public PageDto<CrashDto> searchCrashes(@Valid CrashSearchRequest request) {
+        CrashSearch search = request.toSearch();
+        Page<Crash> page = crashService.searchCrashes(search);
+        return new PageDto<>(
+                page.content().stream().map(CrashController::toDto).toList(),
+                search.page(),
+                search.size(),
+                page.totalElements());
     }
 
     @GetMapping("/crashes/{id}")
