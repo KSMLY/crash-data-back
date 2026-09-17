@@ -5,6 +5,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -13,6 +14,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.exc.InvalidFormatException;
 
+import java.lang.reflect.RecordComponent;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -31,12 +33,28 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(e.getName() + " must be a number.");
     }
 
+    // Also raised for query parameters bound to a record (GET /crashes). A value that
+    // cannot be converted at all, like severity=BOGUS, arrives as a binding failure whose
+    // default message is the raw converter text, so it is rewritten here
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> handleInvalidRequest(MethodArgumentNotValidException e) {
         return ResponseEntity.badRequest().body(e.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getField() + " " + error.getDefaultMessage())
+                .map(error -> error.getField() + " " + (error.isBindingFailure()
+                        ? conversionMessage(e.getParameter().getParameterType(), error)
+                        : error.getDefaultMessage()))
                 .sorted()
                 .collect(Collectors.joining(", ")));
+    }
+
+    private static String conversionMessage(Class<?> target, FieldError error) {
+        if (target.isRecord()) {
+            for (RecordComponent component : target.getRecordComponents()) {
+                if (component.getName().equals(error.getField()) && component.getType().isEnum()) {
+                    return "must be one of: " + allowed(component.getType());
+                }
+            }
+        }
+        return "is not valid.";
     }
 
     // Jackson rejects an unknown enum name before the body ever reaches the controller,

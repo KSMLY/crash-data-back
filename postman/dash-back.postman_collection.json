@@ -14,11 +14,27 @@
       "name": "Crashes",
       "item": [
         {
-          "name": "GET /crashes",
+          "name": "GET /crashes (search)",
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/crashes", "host": ["{{baseUrl}}"], "path": ["crashes"] }
+            "url": {
+              "raw": "{{baseUrl}}/crashes?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["crashes"],
+              "query": [
+                { "key": "q", "value": "", "disabled": true },
+                { "key": "severity", "value": "FATAL", "disabled": true },
+                { "key": "crashType", "value": "", "disabled": true },
+                { "key": "districtId", "value": "", "disabled": true },
+                { "key": "from", "value": "2024-01-01", "disabled": true },
+                { "key": "to", "value": "2024-12-31", "disabled": true },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" },
+                { "key": "sort", "value": "crashDate", "disabled": true },
+                { "key": "order", "value": "desc", "disabled": true }
+              ]
+            }
           }
         },
         {

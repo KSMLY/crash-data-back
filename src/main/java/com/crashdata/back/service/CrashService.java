@@ -9,7 +9,9 @@ import com.crashdata.back.dao.VehicleDao;
 import com.crashdata.back.entity.AlcoholTest;
 import com.crashdata.back.entity.Crash;
 import com.crashdata.back.entity.CrashDetail;
+import com.crashdata.back.entity.CrashSearch;
 import com.crashdata.back.entity.Municipality;
+import com.crashdata.back.entity.Page;
 import com.crashdata.back.entity.Person;
 import com.crashdata.back.entity.PersonSubmission;
 import com.crashdata.back.entity.Vehicle;
@@ -35,8 +37,8 @@ public class CrashService {
     private final AlcoholTestDao alcoholTestDao;
     private final LocationService locationService;
 
-    public List<Crash> getCrashes() {
-        return crashDao.findAll();
+    public Page<Crash> searchCrashes(CrashSearch search) {
+        return new Page<>(crashDao.search(search), crashDao.count(search));
     }
 
     public Optional<CrashDetail> getCrashDetail(Long crashId) {
