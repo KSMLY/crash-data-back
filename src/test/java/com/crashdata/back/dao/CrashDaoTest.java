@@ -2,6 +2,7 @@ package com.crashdata.back.dao;
 
 import com.crashdata.back.code.*;
 import com.crashdata.back.entity.Crash;
+import com.crashdata.back.entity.CrashSearch;
 import com.crashdata.back.entity.District;
 import com.crashdata.back.entity.Municipality;
 import org.junit.jupiter.api.BeforeEach;
@@ -181,38 +182,6 @@ class CrashDaoTest {
     }
 
     @Test
-    void findAllOrdersByYearThenPoliceRef() {
-        seedFullCrash("CD28-B", 2024);
-        seedFullCrash("CD28-A", 2024);
-        seedFullCrash("CD28-C", 2023);
-
-        List<String> seeded = crashDao.findAll().stream()
-                .map(Crash::getPoliceRef)
-                .filter(ref -> ref.startsWith("CD28-"))
-                .toList();
-
-        assertEquals(List.of("CD28-C", "CD28-A", "CD28-B"), seeded);
-    }
-
-    // One query loads the controls for every crash, so a wrong key would hand a crash
-    // another crash's controls
-    @Test
-    void findAllAttachesControlsToTheRightCrash() {
-        long first = seedFullCrash("CD28-CTRL-1", 2024);
-        long second = seedFullCrash("CD28-CTRL-2", 2024);
-        seedControls(first, 2);
-        seedControls(second, 5, 7);
-
-        Map<Long, Set<TrafficControl>> controls = crashDao.findAll().stream()
-                .filter(crash -> crash.getPoliceRef().startsWith("CD28-CTRL-"))
-                .collect(Collectors.toMap(Crash::getId, Crash::getTrafficControls));
-
-        assertEquals(Set.of(TrafficControl.STOP_SIGN), controls.get(first));
-        assertEquals(Set.of(TrafficControl.SIGNAL_WORKING, TrafficControl.UNCONTROLLED),
-                controls.get(second));
-    }
-
-    @Test
     void insertWritesEveryColumnAndReturnsTheGeneratedId() {
         Crash crash = new Crash(
                 null, "CD28-INS", (short) 2024, LocalDate.of(2024, 3, 14), LocalTime.of(13, 45),
@@ -294,7 +263,7 @@ class CrashDaoTest {
     }
 
     @Test
-    void findAllIncludesAFreshlyInsertedCrash() {
+    void searchFindsAFreshlyInsertedCrash() {
         Long id = crashDao.insert(new Crash(
                 null, "CD28-ROUND", (short) 2024, null, null, District.ref(districtId), null, null, null,
                 CrashType.ANIMAL, ImpactType.REAR_TO_SIDE, Weather.FOG, Light.TWILIGHT,
@@ -302,8 +271,98 @@ class CrashDaoTest {
                 ObstaclePresent.UNKNOWN, SurfaceCondition.FLOOD, JunctionType.NOT_AT_GRADE,
                 Curve.OPEN, Grade.NO, Set.of(TrafficControl.STOP_SIGN)));
 
-        assertTrue(crashDao.findAll().stream().anyMatch(crash -> crash.getId().equals(id)));
+        assertEquals(List.of(id), ids(crashDao.search(search("CD28-ROUND"))));
         assertEquals(Set.of(TrafficControl.STOP_SIGN),
                 crashDao.findById(id).orElseThrow().getTrafficControls());
+    }
+
+    // The test database is shared, so every search is scoped with a q prefix only these rows carry
+    private static CrashSearch search(String q) {
+        return new CrashSearch(q, null, null, null, null, null, 0, 20, "policeRef", false);
+    }
+
+    @Test
+    void searchMatchesPoliceRefPrefixAndCountsTheSameRows() {
+        seedFullCrash("CD42-Q-1", 2024);
+        seedFullCrash("CD42-Q-2", 2024);
+        seedFullCrash("CD42-OTHER", 2024);
+
+        List<String> found = crashDao.search(search("CD42-Q")).stream()
+                .map(Crash::getPoliceRef)
+                .toList();
+
+        assertEquals(List.of("CD42-Q-1", "CD42-Q-2"), found);
+        assertEquals(2, crashDao.count(search("CD42-Q")));
+    }
+
+    @Test
+    void searchFiltersBySeverityCrashTypeDistrictAndDateRange() {
+        long fatal = seedFullCrash("CD42-F-1", 2024);
+        seedFullCrash("CD42-F-2", 2024);
+        jdbcTemplate.update("UPDATE crash SET severity_code = 1, crash_type_code = 1, "
+                + "crash_date = '2023-01-10' WHERE id = ?", fatal);
+
+        CrashSearch base = search("CD42-F");
+        CrashSearch bySeverity = new CrashSearch(base.q(), CrashSeverity.FATAL, null, null,
+                null, null, 0, 20, "policeRef", false);
+        CrashSearch byType = new CrashSearch(base.q(), null, CrashType.PEDESTRIAN, null,
+                null, null, 0, 20, "policeRef", false);
+        CrashSearch byDistrict = new CrashSearch(base.q(), null, null, districtId,
+                null, null, 0, 20, "policeRef", false);
+        CrashSearch byDate = new CrashSearch(base.q(), null, null, null,
+                LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), 0, 20, "policeRef", false);
+
+        assertEquals(List.of(fatal), ids(crashDao.search(bySeverity)));
+        assertEquals(List.of(fatal), ids(crashDao.search(byType)));
+        assertEquals(2, crashDao.count(byDistrict));
+        assertEquals(List.of(fatal), ids(crashDao.search(byDate)));
+        assertEquals(1, crashDao.count(byDate));
+    }
+
+    @Test
+    void searchPagesInSortOrderAndCountIgnoresPaging() {
+        seedFullCrash("CD42-P-B", 2024);
+        seedFullCrash("CD42-P-C", 2024);
+        seedFullCrash("CD42-P-A", 2024);
+
+        CrashSearch first = new CrashSearch("CD42-P", null, null, null, null, null, 0, 2, "policeRef", false);
+        CrashSearch second = new CrashSearch("CD42-P", null, null, null, null, null, 1, 2, "policeRef", false);
+        CrashSearch descending = new CrashSearch("CD42-P", null, null, null, null, null, 0, 2, "policeRef", true);
+
+        assertEquals(List.of("CD42-P-A", "CD42-P-B"), refs(crashDao.search(first)));
+        assertEquals(List.of("CD42-P-C"), refs(crashDao.search(second)));
+        assertEquals(List.of("CD42-P-C", "CD42-P-B"), refs(crashDao.search(descending)));
+        assertEquals(3, crashDao.count(first));
+    }
+
+    @Test
+    void searchAttachesControlsToTheRightCrash() {
+        long first = seedFullCrash("CD42-CTRL-1", 2024);
+        long second = seedFullCrash("CD42-CTRL-2", 2024);
+        seedControls(first, 2);
+        seedControls(second, 5, 7);
+
+        Map<Long, Set<TrafficControl>> controls = crashDao.search(search("CD42-CTRL")).stream()
+                .collect(Collectors.toMap(Crash::getId, Crash::getTrafficControls));
+
+        assertEquals(Set.of(TrafficControl.STOP_SIGN), controls.get(first));
+        assertEquals(Set.of(TrafficControl.SIGNAL_WORKING, TrafficControl.UNCONTROLLED),
+                controls.get(second));
+    }
+
+    @Test
+    void searchRejectsASortKeyOutsideTheWhitelist() {
+        CrashSearch injected = new CrashSearch(null, null, null, null, null, null, 0, 20,
+                "crash_date; DROP TABLE crash", false);
+
+        assertThrows(IllegalArgumentException.class, () -> crashDao.search(injected));
+    }
+
+    private static List<Long> ids(List<Crash> crashes) {
+        return crashes.stream().map(Crash::getId).toList();
+    }
+
+    private static List<String> refs(List<Crash> crashes) {
+        return crashes.stream().map(Crash::getPoliceRef).toList();
     }
 }

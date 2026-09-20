@@ -4,8 +4,10 @@ import com.crashdata.back.code.*;
 import com.crashdata.back.entity.AlcoholTest;
 import com.crashdata.back.entity.Crash;
 import com.crashdata.back.entity.CrashDetail;
+import com.crashdata.back.entity.CrashSearch;
 import com.crashdata.back.entity.District;
 import com.crashdata.back.entity.Municipality;
+import com.crashdata.back.entity.Page;
 import com.crashdata.back.entity.Person;
 import com.crashdata.back.entity.PersonSubmission;
 import com.crashdata.back.entity.Vehicle;
@@ -291,12 +293,95 @@ class CrashControllerTest {
     }
 
     @Test
-    void getCrashesMapsEveryField() throws Exception {
-        when(crashService.getCrashes()).thenReturn(List.of(crash()));
+    void searchCrashesWrapsTheRowsInAPageWithDefaults() throws Exception {
+        when(crashService.searchCrashes(any())).thenReturn(new Page<>(List.of(crash()), 41));
 
         mockMvc.perform(get("/crashes"))
                 .andExpect(status().isOk())
-                .andExpect(content().json("[" + CRASH_JSON + "]", JsonCompareMode.STRICT));
+                .andExpect(content().json("{\"content\": [" + CRASH_JSON + "], "
+                        + "\"page\": 0, \"size\": 20, \"totalElements\": 41}", JsonCompareMode.STRICT));
+
+        CrashSearch search = searchPassedToService();
+        assertNull(search.q());
+        assertEquals("crashDate", search.sort());
+        assertEquals(true, search.descending());
+    }
+
+    @Test
+    void searchCrashesPassesEveryFilterToTheService() throws Exception {
+        when(crashService.searchCrashes(any())).thenReturn(new Page<>(List.of(), 0));
+
+        mockMvc.perform(get("/crashes")
+                        .param("q", " PR-1 ")
+                        .param("severity", "FATAL")
+                        .param("crashType", "ANIMAL")
+                        .param("districtId", "3")
+                        .param("from", "2024-01-01")
+                        .param("to", "2024-12-31")
+                        .param("page", "2")
+                        .param("size", "50")
+                        .param("sort", "policeRef")
+                        .param("order", "desc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page").value(2))
+                .andExpect(jsonPath("$.size").value(50));
+
+        CrashSearch search = searchPassedToService();
+        assertEquals("PR-1", search.q());
+        assertEquals(CrashSeverity.FATAL, search.severity());
+        assertEquals(CrashType.ANIMAL, search.crashType());
+        assertEquals(3L, search.districtId());
+        assertEquals(LocalDate.of(2024, 1, 1), search.from());
+        assertEquals(LocalDate.of(2024, 12, 31), search.to());
+        assertEquals(2, search.page());
+        assertEquals(50, search.size());
+        assertEquals("policeRef", search.sort());
+        assertEquals(true, search.descending());
+    }
+
+    @Test
+    void searchCrashesSortsAscendingByDefaultExceptForDates() throws Exception {
+        when(crashService.searchCrashes(any())).thenReturn(new Page<>(List.of(), 0));
+
+        mockMvc.perform(get("/crashes").param("sort", "severity")).andExpect(status().isOk());
+
+        assertEquals(false, searchPassedToService().descending());
+    }
+
+    @Test
+    void searchCrashesRejectsAnOversizedPage() throws Exception {
+        mockMvc.perform(get("/crashes").param("size", "500"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("size must be less than or equal to 100"));
+
+        verify(crashService, never()).searchCrashes(any());
+    }
+
+    @Test
+    void searchCrashesRejectsASortKeyOutsideTheWhitelist() throws Exception {
+        mockMvc.perform(get("/crashes").param("sort", "crash_date"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("sort must match \"crashDate|severity|policeRef\""));
+    }
+
+    @Test
+    void searchCrashesListsTheAllowedValuesForABadEnum() throws Exception {
+        mockMvc.perform(get("/crashes").param("severity", "BOGUS"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("severity must be one of: FATAL, SERIOUS, SLIGHT"));
+    }
+
+    @Test
+    void searchCrashesRejectsANonNumericPage() throws Exception {
+        mockMvc.perform(get("/crashes").param("page", "abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("page is not valid."));
+    }
+
+    private CrashSearch searchPassedToService() {
+        ArgumentCaptor<CrashSearch> captor = ArgumentCaptor.forClass(CrashSearch.class);
+        verify(crashService).searchCrashes(captor.capture());
+        return captor.getValue();
     }
 
     @Test

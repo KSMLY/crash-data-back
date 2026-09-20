@@ -3,6 +3,7 @@ package com.crashdata.back.dao;
 import com.crashdata.back.code.CodedEnum;
 import com.crashdata.back.code.TrafficControl;
 import com.crashdata.back.entity.Crash;
+import com.crashdata.back.entity.CrashSearch;
 import com.crashdata.back.entity.Municipality;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -27,18 +28,63 @@ import static com.crashdata.back.code.CodedEnum.codeOf;
 @AllArgsConstructor
 public class CrashDao {
 
-    private static final String FIND_ALL = Sql.load("sql/crash/find-all.sql");
+    private static final String SEARCH = Sql.load("sql/crash/search.sql");
+    private static final String COUNT = Sql.load("sql/crash/count.sql");
+    private static final String CONTROLS_BY_CRASHES = Sql.load("sql/crash/controls-by-crashes.sql");
     private static final String FIND_BY_ID = Sql.load("sql/crash/find-by-id.sql");
     private static final String INSERT = Sql.load("sql/crash/insert.sql");
     private static final String INSERT_CONTROL = Sql.load("sql/crash/insert-control.sql");
-    private static final String CONTROLS = Sql.load("sql/crash/controls.sql");
     private static final String CONTROLS_BY_CRASH = Sql.load("sql/crash/controls-by-crash.sql");
+
+    // Sort keys the API accepts, mapped to the ORDER BY they expand to. ORDER BY cannot take
+    // a bind parameter, so the column is appended to the statement from this whitelist only
+    private static final Map<String, String> SORT_COLUMNS = Map.of(
+            "crashDate", "crash_date %1$s, crash_time %1$s",
+            "severity", "severity_code %1$s",
+            "policeRef", "ref_year %1$s, police_ref %1$s");
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public List<Crash> findAll() {
-        return jdbcTemplate.query(FIND_ALL,
-                new CrashRowMapper(loadControls(CONTROLS, new MapSqlParameterSource())));
+    public List<Crash> search(CrashSearch search) {
+        String sql = SEARCH + orderBy(search) + " OFFSET :offset ROWS FETCH NEXT :size ROWS ONLY";
+        MapSqlParameterSource params = parameters(search)
+                .addValue("offset", (long) search.page() * search.size())
+                .addValue("size", search.size());
+
+        // Controls are attached after the rows are read, so only this page's controls are loaded
+        List<Crash> crashes = jdbcTemplate.query(sql, params, new CrashRowMapper(Map.of()));
+        if (crashes.isEmpty()) return crashes;
+
+        List<Long> ids = crashes.stream().map(Crash::getId).toList();
+        Map<Long, Set<TrafficControl>> controls =
+                loadControls(CONTROLS_BY_CRASHES, new MapSqlParameterSource("crash_ids", ids));
+        return crashes.stream()
+                .map(crash -> crash.withTrafficControls(controls.getOrDefault(crash.getId(), Set.of())))
+                .toList();
+    }
+
+    public long count(CrashSearch search) {
+        return Objects.requireNonNull(jdbcTemplate.queryForObject(COUNT, parameters(search), Long.class));
+    }
+
+    private static String orderBy(CrashSearch search) {
+        String columns = SORT_COLUMNS.get(search.sort());
+        if (columns == null) {
+            throw new IllegalArgumentException("Unknown sort key: " + search.sort());
+        }
+        String direction = search.descending() ? "DESC" : "ASC";
+        // id last so the order is stable across pages when the sort column ties
+        return " ORDER BY " + String.format(columns, direction) + ", c.id " + direction;
+    }
+
+    private static MapSqlParameterSource parameters(CrashSearch search) {
+        return new MapSqlParameterSource()
+                .addValue("q", search.q() == null ? null : search.q() + "%")
+                .addValue("severity", codeOf(search.severity()))
+                .addValue("crash_type", codeOf(search.crashType()))
+                .addValue("district_id", search.districtId())
+                .addValue("from_date", search.from())
+                .addValue("to_date", search.to());
     }
 
     public Optional<Crash> findById(Long id) {
