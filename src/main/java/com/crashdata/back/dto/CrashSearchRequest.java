@@ -19,6 +19,7 @@ public record CrashSearchRequest(
         CrashSeverity severity,
         CrashType crashType,
         Long districtId,
+        Long municipalityId,
         LocalDate from,
         LocalDate to,
         @Min(0) Integer page,
@@ -34,7 +35,7 @@ public record CrashSearchRequest(
         boolean descending = order == null ? sortKey.equals("crashDate") : order.equals("desc");
         return new CrashSearch(
                 q == null || q.isBlank() ? null : q.trim(),
-                severity, crashType, districtId, from, to,
+                severity, crashType, districtId, municipalityId, from, to,
                 page == null ? 0 : page,
                 size == null ? DEFAULT_SIZE : size,
                 sortKey,

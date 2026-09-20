@@ -83,6 +83,7 @@ public class CrashDao {
                 .addValue("severity", codeOf(search.severity()))
                 .addValue("crash_type", codeOf(search.crashType()))
                 .addValue("district_id", search.districtId())
+                .addValue("municipality_id", search.municipalityId())
                 .addValue("from_date", search.from())
                 .addValue("to_date", search.to());
     }

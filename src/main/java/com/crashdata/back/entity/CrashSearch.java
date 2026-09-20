@@ -10,6 +10,7 @@ public record CrashSearch(
         CrashSeverity severity,
         CrashType crashType,
         Long districtId,
+        Long municipalityId,
         LocalDate from, LocalDate to,
         int page, int size,
         String sort, boolean descending) {

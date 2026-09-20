@@ -316,6 +316,7 @@ class CrashControllerTest {
                         .param("severity", "FATAL")
                         .param("crashType", "ANIMAL")
                         .param("districtId", "3")
+                        .param("municipalityId", "9")
                         .param("from", "2024-01-01")
                         .param("to", "2024-12-31")
                         .param("page", "2")
@@ -331,6 +332,7 @@ class CrashControllerTest {
         assertEquals(CrashSeverity.FATAL, search.severity());
         assertEquals(CrashType.ANIMAL, search.crashType());
         assertEquals(3L, search.districtId());
+        assertEquals(9L, search.municipalityId());
         assertEquals(LocalDate.of(2024, 1, 1), search.from());
         assertEquals(LocalDate.of(2024, 12, 31), search.to());
         assertEquals(2, search.page());
