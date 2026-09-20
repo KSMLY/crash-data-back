@@ -27,6 +27,7 @@
                 { "key": "severity", "value": "FATAL", "disabled": true },
                 { "key": "crashType", "value": "", "disabled": true },
                 { "key": "districtId", "value": "", "disabled": true },
+                { "key": "municipalityId", "value": "", "disabled": true },
                 { "key": "from", "value": "2024-01-01", "disabled": true },
                 { "key": "to", "value": "2024-12-31", "disabled": true },
                 { "key": "page", "value": "0" },

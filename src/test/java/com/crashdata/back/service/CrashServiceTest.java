@@ -77,7 +77,7 @@ class CrashServiceTest {
 
     @Test
     void searchCrashesPairsThePageWithTheTotalCount() {
-        CrashSearch search = new CrashSearch(null, null, null, null, null, null, 0, 20, "crashDate", true);
+        CrashSearch search = new CrashSearch(null, null, null, null, null, null, null, 0, 20, "crashDate", true);
         List<Crash> rows = List.of(crash());
         when(crashDao.search(search)).thenReturn(rows);
         when(crashDao.count(search)).thenReturn(57L);

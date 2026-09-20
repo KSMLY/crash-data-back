@@ -278,7 +278,7 @@ class CrashDaoTest {
 
     // The test database is shared, so every search is scoped with a q prefix only these rows carry
     private static CrashSearch search(String q) {
-        return new CrashSearch(q, null, null, null, null, null, 0, 20, "policeRef", false);
+        return new CrashSearch(q, null, null, null, null, null, null, 0, 20, "policeRef", false);
     }
 
     @Test
@@ -296,25 +296,28 @@ class CrashDaoTest {
     }
 
     @Test
-    void searchFiltersBySeverityCrashTypeDistrictAndDateRange() {
+    void searchFiltersBySeverityCrashTypeLocationAndDateRange() {
         long fatal = seedFullCrash("CD42-F-1", 2024);
         seedFullCrash("CD42-F-2", 2024);
         jdbcTemplate.update("UPDATE crash SET severity_code = 1, crash_type_code = 1, "
                 + "crash_date = '2023-01-10' WHERE id = ?", fatal);
 
         CrashSearch base = search("CD42-F");
-        CrashSearch bySeverity = new CrashSearch(base.q(), CrashSeverity.FATAL, null, null,
+        CrashSearch bySeverity = new CrashSearch(base.q(), CrashSeverity.FATAL, null, null, null,
                 null, null, 0, 20, "policeRef", false);
-        CrashSearch byType = new CrashSearch(base.q(), null, CrashType.PEDESTRIAN, null,
+        CrashSearch byType = new CrashSearch(base.q(), null, CrashType.PEDESTRIAN, null, null,
                 null, null, 0, 20, "policeRef", false);
-        CrashSearch byDistrict = new CrashSearch(base.q(), null, null, districtId,
+        CrashSearch byDistrict = new CrashSearch(base.q(), null, null, districtId, null,
                 null, null, 0, 20, "policeRef", false);
-        CrashSearch byDate = new CrashSearch(base.q(), null, null, null,
+        CrashSearch byMunicipality = new CrashSearch(base.q(), null, null, null, municipalityId,
+                null, null, 0, 20, "policeRef", false);
+        CrashSearch byDate = new CrashSearch(base.q(), null, null, null, null,
                 LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), 0, 20, "policeRef", false);
 
         assertEquals(List.of(fatal), ids(crashDao.search(bySeverity)));
         assertEquals(List.of(fatal), ids(crashDao.search(byType)));
         assertEquals(2, crashDao.count(byDistrict));
+        assertEquals(2, crashDao.count(byMunicipality));
         assertEquals(List.of(fatal), ids(crashDao.search(byDate)));
         assertEquals(1, crashDao.count(byDate));
     }
@@ -325,9 +328,9 @@ class CrashDaoTest {
         seedFullCrash("CD42-P-C", 2024);
         seedFullCrash("CD42-P-A", 2024);
 
-        CrashSearch first = new CrashSearch("CD42-P", null, null, null, null, null, 0, 2, "policeRef", false);
-        CrashSearch second = new CrashSearch("CD42-P", null, null, null, null, null, 1, 2, "policeRef", false);
-        CrashSearch descending = new CrashSearch("CD42-P", null, null, null, null, null, 0, 2, "policeRef", true);
+        CrashSearch first = new CrashSearch("CD42-P", null, null, null, null, null, null, 0, 2, "policeRef", false);
+        CrashSearch second = new CrashSearch("CD42-P", null, null, null, null, null, null, 1, 2, "policeRef", false);
+        CrashSearch descending = new CrashSearch("CD42-P", null, null, null, null, null, null, 0, 2, "policeRef", true);
 
         assertEquals(List.of("CD42-P-A", "CD42-P-B"), refs(crashDao.search(first)));
         assertEquals(List.of("CD42-P-C"), refs(crashDao.search(second)));
@@ -352,8 +355,7 @@ class CrashDaoTest {
 
     @Test
     void searchRejectsASortKeyOutsideTheWhitelist() {
-        CrashSearch injected = new CrashSearch(null, null, null, null, null, null, 0, 20,
-                "crash_date; DROP TABLE crash", false);
+        CrashSearch injected = new CrashSearch(null, null, null, null, null, null, null, 0, 20, "crash_date; DROP TABLE crash", false);
 
         assertThrows(IllegalArgumentException.class, () -> crashDao.search(injected));
     }
