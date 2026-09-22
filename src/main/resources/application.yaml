@@ -5,6 +5,12 @@ spring:
     url: jdbc:sqlserver://${DB_HOST:localhost}:1433;databaseName=crashdb;trustServerCertificate=true
     username: sa
     password: ${MSSQL_SA_PASSWORD}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${SUPABASE_JWKS_URI}
+          jws-algorithms: ES256
 
 app:
   cache:

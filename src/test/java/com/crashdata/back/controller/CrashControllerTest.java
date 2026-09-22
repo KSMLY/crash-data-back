@@ -17,6 +17,7 @@ import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.MediaType;
@@ -50,6 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CrashController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class CrashControllerTest {
 
     @Autowired
