@@ -4,9 +4,11 @@ import com.crashdata.back.code.*;
 import com.crashdata.back.dto.AlcoholTestDto;
 import com.crashdata.back.dto.CrashDetailDto;
 import com.crashdata.back.dto.CrashDto;
+import com.crashdata.back.dto.CrashPointDto;
 import com.crashdata.back.dto.DistrictDto;
 import com.crashdata.back.dto.MunicipalityDto;
 import com.crashdata.back.dto.AlcoholTestRequest;
+import com.crashdata.back.dto.CrashPointRequest;
 import com.crashdata.back.dto.CrashRequest;
 import com.crashdata.back.dto.CrashSearchRequest;
 import com.crashdata.back.dto.PageDto;
@@ -17,6 +19,7 @@ import com.crashdata.back.dto.VehicleDto;
 import com.crashdata.back.entity.AlcoholTest;
 import com.crashdata.back.entity.Crash;
 import com.crashdata.back.entity.CrashDetail;
+import com.crashdata.back.entity.CrashPoint;
 import com.crashdata.back.entity.CrashSearch;
 import com.crashdata.back.entity.District;
 import com.crashdata.back.entity.Municipality;
@@ -59,6 +62,13 @@ public class CrashController {
         return crashService.getCrashDetail(id)
                 .map(CrashController::toDto)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("/crashes/points")
+    public List<CrashPointDto> getPoints(@Valid CrashPointRequest request) {
+        return crashService.getPoints(request.fromOrDefault(), request.toOrToday()).stream()
+                .map(CrashController::toDto)
+                .toList();
     }
 
     @PostMapping("/crashes")
@@ -245,5 +255,9 @@ public class CrashController {
                 test.getTestType(),
                 test.getResultStatus(),
                 test.getResultValue());
+    }
+
+    private static CrashPointDto toDto(CrashPoint point) {
+        return new CrashPointDto(point.id(), point.latitude(), point.longitude(), point.severity());
     }
 }
