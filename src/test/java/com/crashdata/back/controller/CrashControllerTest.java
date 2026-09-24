@@ -4,6 +4,7 @@ import com.crashdata.back.code.*;
 import com.crashdata.back.entity.AlcoholTest;
 import com.crashdata.back.entity.Crash;
 import com.crashdata.back.entity.CrashDetail;
+import com.crashdata.back.entity.CrashPoint;
 import com.crashdata.back.entity.CrashSearch;
 import com.crashdata.back.entity.District;
 import com.crashdata.back.entity.Municipality;
@@ -414,6 +415,42 @@ class CrashControllerTest {
                 .andExpect(content().string("id must be a number."));
 
         verify(crashService, never()).getCrashDetail(any());
+    }
+
+    @Test
+    void getPointsMapsEveryField() throws Exception {
+        LocalDate from = LocalDate.of(2026, 8, 23);
+        LocalDate to = LocalDate.of(2026, 9, 21);
+        when(crashService.getPoints(from, to)).thenReturn(List.of(new CrashPoint(
+                7L, new BigDecimal("33.888630"), new BigDecimal("35.495480"), CrashSeverity.FATAL)));
+
+        mockMvc.perform(get("/crashes/points").param("from", "2026-08-23").param("to", "2026-09-21"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id").value(7))
+                .andExpect(jsonPath("$[0].latitude").value(33.888630))
+                .andExpect(jsonPath("$[0].longitude").value(35.495480))
+                .andExpect(jsonPath("$[0].severity").value("FATAL"));
+    }
+
+    @Test
+    void getPointsDefaultsToTheLastThirtyDays() throws Exception {
+        when(crashService.getPoints(any(), any())).thenReturn(List.of());
+
+        mockMvc.perform(get("/crashes/points"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+
+        verify(crashService).getPoints(LocalDate.now().minusDays(29), LocalDate.now());
+    }
+
+    @Test
+    void getPointsRejectsABadDate() throws Exception {
+        mockMvc.perform(get("/crashes/points").param("from", "yesterday"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("from is not valid."));
+
+        verify(crashService, never()).getPoints(any(), any());
     }
 
     @Test

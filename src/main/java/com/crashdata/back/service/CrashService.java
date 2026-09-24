@@ -9,6 +9,7 @@ import com.crashdata.back.dao.VehicleDao;
 import com.crashdata.back.entity.AlcoholTest;
 import com.crashdata.back.entity.Crash;
 import com.crashdata.back.entity.CrashDetail;
+import com.crashdata.back.entity.CrashPoint;
 import com.crashdata.back.entity.CrashSearch;
 import com.crashdata.back.entity.Municipality;
 import com.crashdata.back.entity.Page;
@@ -19,6 +20,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -162,5 +164,9 @@ public class CrashService {
         return anyUnknown
                 ? "At least one person's injurySeverityCode must be known."
                 : "Only injury crashes are recorded: at least one person must be injured.";
+    }
+
+    public List<CrashPoint> getPoints(LocalDate from, LocalDate to) {
+        return crashDao.points(from, to);
     }
 }

@@ -1,12 +1,15 @@
 package com.crashdata.back.dao;
 
 import com.crashdata.back.code.CodedEnum;
+import com.crashdata.back.code.CrashSeverity;
 import com.crashdata.back.code.TrafficControl;
 import com.crashdata.back.entity.Crash;
+import com.crashdata.back.entity.CrashPoint;
 import com.crashdata.back.entity.CrashSearch;
 import com.crashdata.back.entity.Municipality;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -14,6 +17,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +39,7 @@ public class CrashDao {
     private static final String INSERT = Sql.load("sql/crash/insert.sql");
     private static final String INSERT_CONTROL = Sql.load("sql/crash/insert-control.sql");
     private static final String CONTROLS_BY_CRASH = Sql.load("sql/crash/controls-by-crash.sql");
+    private static final String POINTS = Sql.load("sql/crash/points.sql");
 
     // Sort keys the API accepts, mapped to the ORDER BY they expand to. ORDER BY cannot take
     // a bind parameter, so the column is appended to the statement from this whitelist only
@@ -42,6 +47,13 @@ public class CrashDao {
             "crashDate", "crash_date %1$s, crash_time %1$s",
             "severity", "severity_code %1$s",
             "policeRef", "ref_year %1$s, police_ref %1$s");
+
+    private static final RowMapper<CrashPoint> POINT_MAPPER = (rs, rowNum) -> new CrashPoint(
+            rs.getLong("id"),
+            rs.getBigDecimal("latitude"),
+            rs.getBigDecimal("longitude"),
+            Codes.of(rs, "severity_code", CrashSeverity.class)
+    );
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -151,5 +163,12 @@ public class CrashDao {
                         .add(CodedEnum.fromCode(TrafficControl.class, rs.getShort("control_code")));
         jdbcTemplate.query(sql, params, collect);
         return byCrashId;
+    }
+
+    public List<CrashPoint> points(LocalDate from, LocalDate to) {
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("from_date", from)
+                .addValue("to_date", to);
+        return jdbcTemplate.query(POINTS, params, POINT_MAPPER);
     }
 }
