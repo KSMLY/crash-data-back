@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 @Service
 @AllArgsConstructor
@@ -41,6 +42,10 @@ public class CrashService {
 
     public Page<Crash> searchCrashes(CrashSearch search) {
         return new Page<>(crashDao.search(search), crashDao.count(search));
+    }
+
+    public void exportCrashes(CrashSearch search, Consumer<Crash> sink) {
+        crashDao.export(search, sink);
     }
 
     public Optional<CrashDetail> getCrashDetail(Long crashId) {
