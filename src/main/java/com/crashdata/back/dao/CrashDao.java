@@ -50,6 +50,8 @@ public class CrashDao {
 
     private static final RowMapper<CrashPoint> POINT_MAPPER = (rs, rowNum) -> new CrashPoint(
             rs.getLong("id"),
+            rs.getString("police_ref"),
+            rs.getObject("crash_date", LocalDate.class),
             rs.getBigDecimal("latitude"),
             rs.getBigDecimal("longitude"),
             Codes.of(rs, "severity_code", CrashSeverity.class)

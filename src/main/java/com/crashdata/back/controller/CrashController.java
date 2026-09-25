@@ -258,6 +258,7 @@ public class CrashController {
     }
 
     private static CrashPointDto toDto(CrashPoint point) {
-        return new CrashPointDto(point.id(), point.latitude(), point.longitude(), point.severity());
+        return new CrashPointDto(point.id(), point.policeRef(), point.crashDate(),
+                point.latitude(), point.longitude(), point.severity());
     }
 }

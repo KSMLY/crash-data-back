@@ -422,12 +422,15 @@ class CrashControllerTest {
         LocalDate from = LocalDate.of(2026, 8, 23);
         LocalDate to = LocalDate.of(2026, 9, 21);
         when(crashService.getPoints(from, to)).thenReturn(List.of(new CrashPoint(
-                7L, new BigDecimal("33.888630"), new BigDecimal("35.495480"), CrashSeverity.FATAL)));
+                7L, "2026-000123", LocalDate.of(2026, 9, 2),
+                new BigDecimal("33.888630"), new BigDecimal("35.495480"), CrashSeverity.FATAL)));
 
         mockMvc.perform(get("/crashes/points").param("from", "2026-08-23").param("to", "2026-09-21"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id").value(7))
+                .andExpect(jsonPath("$[0].policeRef").value("2026-000123"))
+                .andExpect(jsonPath("$[0].crashDate").value("2026-09-02"))
                 .andExpect(jsonPath("$[0].latitude").value(33.888630))
                 .andExpect(jsonPath("$[0].longitude").value(35.495480))
                 .andExpect(jsonPath("$[0].severity").value("FATAL"));
