@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.crashdata.back.code.CodedEnum.codeOf;
 
@@ -75,6 +76,14 @@ public class CrashDao {
         return crashes.stream()
                 .map(crash -> crash.withTrafficControls(controls.getOrDefault(crash.getId(), Set.of())))
                 .toList();
+    }
+
+    // Same filters and order as search() without the page window. Rows are handed to the
+    // sink one at a time so an export never holds the whole result in memory
+    public void export(CrashSearch search, Consumer<Crash> sink) {
+        CrashRowMapper mapper = new CrashRowMapper(Map.of());
+        RowCallbackHandler handler = rs -> sink.accept(mapper.mapRow(rs, 0));
+        jdbcTemplate.query(SEARCH + orderBy(search), parameters(search), handler);
     }
 
     public long count(CrashSearch search) {

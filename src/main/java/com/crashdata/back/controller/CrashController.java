@@ -28,14 +28,21 @@ import com.crashdata.back.entity.PersonSubmission;
 import com.crashdata.back.entity.Person;
 import com.crashdata.back.entity.Vehicle;
 import com.crashdata.back.service.CrashService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -55,6 +62,21 @@ public class CrashController {
                 search.page(),
                 search.size(),
                 page.totalElements());
+    }
+
+    // Written straight to the response on the request thread: it still streams row by row,
+    // without the async dispatch a StreamingResponseBody would need. page and size are ignored
+    @GetMapping("/crashes/export")
+    public void exportCrashes(@Valid CrashSearchRequest request, HttpServletResponse response) throws IOException {
+        response.setContentType("text/csv");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                ContentDisposition.attachment().filename("crashes-" + LocalDate.now() + ".csv").build().toString());
+
+        PrintWriter out = response.getWriter();
+        out.write(CrashCsv.HEADER);
+        crashService.exportCrashes(request.toSearch(), crash -> out.write(CrashCsv.row(crash)));
+        out.flush();
     }
 
     @GetMapping("/crashes/{id}")

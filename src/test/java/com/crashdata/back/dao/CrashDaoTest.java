@@ -17,6 +17,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -336,6 +337,20 @@ class CrashDaoTest {
         assertEquals(List.of("CD42-P-C"), refs(crashDao.search(second)));
         assertEquals(List.of("CD42-P-C", "CD42-P-B"), refs(crashDao.search(descending)));
         assertEquals(3, crashDao.count(first));
+    }
+
+    @Test
+    void exportIgnoresThePageWindowButKeepsFiltersAndOrder() {
+        seedFullCrash("CD50-E-B", 2024);
+        seedFullCrash("CD50-E-C", 2024);
+        seedFullCrash("CD50-E-A", 2024);
+        seedFullCrash("CD50-OTHER", 2024);
+
+        CrashSearch secondPageOfOne = new CrashSearch("CD50-E", null, null, null, null, null, null, 1, 1, "policeRef", true);
+        List<Crash> exported = new ArrayList<>();
+        crashDao.export(secondPageOfOne, exported::add);
+
+        assertEquals(List.of("CD50-E-C", "CD50-E-B", "CD50-E-A"), refs(exported));
     }
 
     @Test

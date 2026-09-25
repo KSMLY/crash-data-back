@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -41,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -454,6 +456,49 @@ class CrashControllerTest {
                 .andExpect(content().string("from is not valid."));
 
         verify(crashService, never()).getPoints(any(), any());
+    }
+
+    @Test
+    void exportCrashesWritesAHeaderAndOneLinePerCrashAsAnAttachment() throws Exception {
+        doAnswer(invocation -> {
+            Consumer<Crash> sink = invocation.getArgument(1);
+            sink.accept(crash());
+            return null;
+        }).when(crashService).exportCrashes(any(), any());
+
+        mockMvc.perform(get("/crashes/export"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/csv;charset=UTF-8"))
+                .andExpect(header().string("Content-Disposition",
+                        "attachment; filename=\"crashes-" + LocalDate.now() + ".csv\""))
+                .andExpect(content().string(
+                        "police_ref,crash_date,crash_time,district,municipality,severity,crash_type,latitude,longitude\r\n"
+                                + "PR-100,2024-03-14,13:45,Baabda,Hadath,SLIGHT,ANIMAL,33.5,35.25\r\n"));
+    }
+
+    @Test
+    void exportCrashesPassesTheSameFiltersAsSearch() throws Exception {
+        mockMvc.perform(get("/crashes/export")
+                        .param("q", "PR").param("severity", "FATAL").param("districtId", "11")
+                        .param("from", "2024-01-01").param("sort", "policeRef"))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<CrashSearch> captor = ArgumentCaptor.forClass(CrashSearch.class);
+        verify(crashService).exportCrashes(captor.capture(), any());
+        CrashSearch search = captor.getValue();
+        assertEquals("PR", search.q());
+        assertEquals(CrashSeverity.FATAL, search.severity());
+        assertEquals(11L, search.districtId());
+        assertEquals(LocalDate.of(2024, 1, 1), search.from());
+        assertEquals("policeRef", search.sort());
+    }
+
+    @Test
+    void exportCrashesRejectsABadFilter() throws Exception {
+        mockMvc.perform(get("/crashes/export").param("sort", "id"))
+                .andExpect(status().isBadRequest());
+
+        verify(crashService, never()).exportCrashes(any(), any());
     }
 
     @Test
